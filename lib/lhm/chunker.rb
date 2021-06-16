@@ -47,7 +47,7 @@ module Lhm
         expected_rows = top - bottom + 1
 
         if affected_rows < expected_rows
-          raise_on_non_pk_duplicates
+          raise_on_non_pk_duplicate_warning
         end
 
         if @throttler && affected_rows > 0
@@ -65,7 +65,7 @@ module Lhm
 
     private
 
-    def raise_on_non_pk_duplicates
+    def raise_on_non_pk_duplicate_warning
       @connection.query("show warnings").each do |level, code, message|
         unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
           raise Error.new("Unexpected warning found for inserted row: #{message}")
