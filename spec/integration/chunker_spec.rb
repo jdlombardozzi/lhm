@@ -85,7 +85,7 @@ describe Lhm::Chunker do
         Lhm::Chunker.new(migration, connection, {:throttler => Lhm::Throttler::Time.new(:stride => 100), :printer => printer} ).run
       end
 
-      assert_match "Duplicate entry found for a non PRIMARY KEY constraint: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'", exception.message
+      assert_match "Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'", exception.message
     end
 
     it 'should create the modified destination, even if the source is empty' do

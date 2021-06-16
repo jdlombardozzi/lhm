@@ -68,7 +68,7 @@ module Lhm
     def raise_on_non_pk_duplicates
       @connection.query("show warnings").each do |level, code, message|
         unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
-          raise Error.new("Duplicate entry found for a non PRIMARY KEY constraint: #{message}")
+          raise Error.new("Unexpected warning found for inserted row: #{message}")
         end
       end
     end
