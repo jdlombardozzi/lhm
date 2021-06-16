@@ -32,6 +32,62 @@ describe Lhm::Chunker do
 
     end
 
+    it 'should copy and ignore duplicate primary key' do
+      execute("insert into origin set id = 1001 ")
+      execute("insert into origin set id = 1002 ")
+      execute("insert into destination set id = 1002 ")
+      printer = Lhm::Printer::Base.new
+
+      def printer.notify(*) ;end
+      def printer.end(*) [] ;end
+
+      Lhm::Chunker.new(@migration, connection, {:throttler => Lhm::Throttler::Time.new(:stride => 100), :printer => printer} ).run
+
+      slave do
+        count_all(@destination.name).must_equal(2)
+      end
+    end
+
+    it 'should copy and ignore duplicate composite primary key' do
+      origin = table_create(:composite_primary_key)
+      destination = table_create(:composite_primary_key_dest)
+      migration = Lhm::Migration.new(origin, destination)
+
+      execute("insert into composite_primary_key set id = 1001, shop_id = 1 ")
+      execute("insert into composite_primary_key set id = 1002, shop_id = 1 ")
+      execute("insert into composite_primary_key_dest set id = 1002, shop_id = 1 ")
+      printer = Lhm::Printer::Base.new
+
+      def printer.notify(*) ;end
+      def printer.end(*) [] ;end
+
+      Lhm::Chunker.new(migration, connection, {:throttler => Lhm::Throttler::Time.new(:stride => 100), :printer => printer} ).run
+
+      slave do
+        count_all(destination.name).must_equal(2)
+      end
+    end
+
+    it 'should copy and raise duplicate unique index' do
+      origin = table_create(:custom_primary_key)
+      destination = table_create(:custom_primary_key_dest)
+      migration = Lhm::Migration.new(origin, destination)
+
+      execute("insert into custom_primary_key set id = 1001, pk = 1 ")
+      execute("insert into custom_primary_key set id = 1002, pk = 2 ")
+      execute("insert into custom_primary_key_dest set id = 1001, pk = 3")
+      printer = Lhm::Printer::Base.new
+
+      def printer.notify(*) ;end
+      def printer.end(*) [] ;end
+
+      exception = assert_raises(Lhm::Error) do
+        Lhm::Chunker.new(migration, connection, {:throttler => Lhm::Throttler::Time.new(:stride => 100), :printer => printer} ).run
+      end
+
+      assert_match "Duplicate entry found for a non PRIMARY KEY constraint: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'", exception.message
+    end
+
     it 'should create the modified destination, even if the source is empty' do
       execute("truncate origin ")
       printer = Lhm::Printer::Base.new

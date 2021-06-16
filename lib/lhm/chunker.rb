@@ -44,6 +44,12 @@ module Lhm
         verify_can_run
 
         affected_rows = ChunkInsert.new(@migration, @connection, bottom, top, @options).insert_and_return_count_of_rows_created
+        expected_rows = top - bottom + 1
+
+        if affected_rows < expected_rows
+          raise_on_non_pk_duplicates
+        end
+
         if @throttler && affected_rows > 0
           @throttler.run
         end
@@ -58,6 +64,14 @@ module Lhm
     end
 
     private
+
+    def raise_on_non_pk_duplicates
+      @connection.query("show warnings").each do |level, code, message|
+        unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
+          raise Error.new("Duplicate entry found for a non PRIMARY KEY constraint: #{message}")
+        end
+      end
+    end
 
     def bottom
       @next_to_insert
