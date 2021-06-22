@@ -15,6 +15,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.5.1
+          bundler-cache: true
+      - name: Cache MySQL
+        uses: actions/cache@v2
+        with:
+          path: dbdeployer/binaries
+          key: ${{ runner.os }}-dbdeployer-${{ hashFiles('**/dbdeployer/install.sh') }}
       - name: Install Ruby packages
         run: bundle install
       - name: Install Ubuntu packages
