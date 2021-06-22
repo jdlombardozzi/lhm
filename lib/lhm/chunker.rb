@@ -69,9 +69,9 @@ module Lhm
     def raise_on_non_pk_duplicate_warning
       @connection.query("show warnings").each do |level, code, message|
         unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
-          message = "Unexpected warning found for inserted row: #{message}"
-          Lhm.logger.warn(message)
-          raise Error.new(message) if @raise_on_warnings
+          m = "Unexpected warning found for inserted row: #{message}"
+          Lhm.logger.warn(m)
+          raise Error.new(m) if @raise_on_warnings
         end
       end
     end
