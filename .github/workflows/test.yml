@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.5.1
+          bundler-cache: true
+      - name: Cache MySQL
+        uses: actions/cache@v2
+        with:
+          path: dbdeployer/binaries
+          key: ${{ runner.os }}-dbdeployer-${{ hashFiles('**/dbdeployer/install.sh') }}
+      - name: Install Ruby packages
+        run: bundle install
+      - name: Install Ubuntu packages
+        run: sudo apt-get install numactl libaio-dev
+      - name: Setup MySQL
+        run: ./dbdeployer/install.sh
+      - name: Run integration tests
+        run: bundle exec rake integration
+      - name: Run unit tests
+        run: bundle exec rake unit

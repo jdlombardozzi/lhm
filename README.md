@@ -1,5 +1,7 @@
 # Large Hadron Migrator
 
+[![Tests](https://github.com/Shopify/lhm/actions/workflows/test.yml/badge.svg)](https://github.com/Shopify/lhm/actions/workflows/test.yml)
+
 This is the Shopify fork of [SoundCloud's LHM](https://github.com/soundcloud/lhm). The 
 following description, originally from SoundCloud (with minor updates by Shopify),
 gives some of the flavor around its original creation, and its choice of name...
