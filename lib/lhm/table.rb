@@ -18,7 +18,7 @@ module Lhm
 
     def satisfies_id_column_requirement?
       !!((id = columns['id']) &&
-        id[:type] =~ /(bigint|int)\(\d+\)/)
+        id[:type] =~ /(bigint|int)(\(\d+\))?/)
     end
 
     def destination_name

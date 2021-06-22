@@ -32,6 +32,12 @@ describe Lhm::Table do
       @table.satisfies_id_column_requirement?.must_equal true
     end
 
+    it 'should be satisifed if display attributes are not present (deprecated in mysql 8)' do
+      @table = Lhm::Table.new('table', 'id')
+      set_columns(@table, { 'id' => { :type => 'int' } })
+      @table.satisfies_id_column_requirement?.must_equal true
+    end
+
     it 'should not be satisfied if id is not numeric' do
       @table = Lhm::Table.new('table', 'id')
       set_columns(@table, { 'id' => { :type => 'varchar(255)' } })
