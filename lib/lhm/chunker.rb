@@ -20,6 +20,7 @@ module Lhm
       @connection = connection
       @chunk_finder = ChunkFinder.new(migration, connection, options)
       @options = options
+      @raise_on_warnings = options.fetch(:raise_on_warnings, false)
       @verifier = options[:verifier]
       if @throttler = options[:throttler]
         @throttler.connection = @connection if @throttler.respond_to?(:connection=)
@@ -68,7 +69,9 @@ module Lhm
     def raise_on_non_pk_duplicate_warning
       @connection.query("show warnings").each do |level, code, message|
         unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
-          raise Error.new("Unexpected warning found for inserted row: #{message}")
+          message = "Unexpected warning found for inserted row: #{message}"
+          Lhm.logger.warn(message)
+          raise Error.new(message) if @raise_on_warnings
         end
       end
     end
