@@ -71,7 +71,7 @@ describe Lhm::Chunker do
       execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
 
       exception = assert_raises(Lhm::Error) do
-        Lhm::Chunker.new(migration, connection, {:raise_on_warnings => true, throttler: throttler, printer: printer} ).run
+        Lhm::Chunker.new(migration, connection, {raise_on_warnings: true, throttler: throttler, printer: printer} ).run
       end
 
       assert_match "Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'", exception.message
@@ -97,7 +97,7 @@ describe Lhm::Chunker do
       execute("insert into custom_primary_key set id = 1001, pk = 1 ")
       execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
 
-      Lhm::Chunker.new(migration, connection, {:raise_on_warnings => false, throttler: throttler, printer: printer} ).run
+      Lhm::Chunker.new(migration, connection, {raise_on_warnings: false, throttler: throttler, printer: printer} ).run
       assert log_messages[1].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
     end
 
@@ -136,7 +136,7 @@ describe Lhm::Chunker do
 
 
       Lhm::Chunker.new(
-        @migration, connection, { throttler: Lhm::Throttler::Time.new(:stride => 10), printer: printer }
+        @migration, connection, { throttler: Lhm::Throttler::Time.new(stride: 10), printer: printer }
       ).run
 
       slave do
@@ -153,7 +153,7 @@ describe Lhm::Chunker do
       printer.expect(:end, :return_value, [])
 
       Lhm::Chunker.new(
-        @migration, connection, { throttler: Lhm::Throttler::SlaveLag.new(:stride => 100), printer: printer }
+        @migration, connection, { throttler: Lhm::Throttler::SlaveLag.new(stride: 100), printer: printer }
       ).run
 
       slave do
@@ -170,7 +170,7 @@ describe Lhm::Chunker do
       printer.expects(:notify).with(instance_of(Integer), instance_of(Integer)).twice
       printer.expects(:end)
 
-      throttler = Lhm::Throttler::SlaveLag.new(:stride => 10, :allowed_lag => 0)
+      throttler = Lhm::Throttler::SlaveLag.new(stride: 10, allowed_lag: 0)
       def throttler.max_current_slave_lag
         1
       end
@@ -194,7 +194,7 @@ describe Lhm::Chunker do
       printer.expects(:verify)
       printer.expects(:end)
 
-      throttler = Lhm::Throttler::SlaveLag.new(:stride => 10, :allowed_lag => 0)
+      throttler = Lhm::Throttler::SlaveLag.new(stride: 10, allowed_lag: 0)
 
       def throttler.slave_hosts
         ['127.0.0.1']
@@ -232,7 +232,7 @@ describe Lhm::Chunker do
 
       exception = assert_raises do
         Lhm::Chunker.new(
-          @migration, connection, { :verifier => failer, printer: printer, throttler: throttler }
+          @migration, connection, { verifier: failer, printer: printer, throttler: throttler }
         ).run
       end
 
