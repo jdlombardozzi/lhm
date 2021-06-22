@@ -62,26 +62,43 @@ describe Lhm::Chunker do
       end
     end
 
-    it 'should copy and warn/raise on unexpected warnings' do
+    it 'should copy and raise on unexpected warnings' do
       origin = table_create(:custom_primary_key)
       destination = table_create(:custom_primary_key_dest)
       migration = Lhm::Migration.new(origin, destination)
 
       execute("insert into custom_primary_key set id = 1001, pk = 1 ")
-      execute("insert into custom_primary_key set id = 1002, pk = 2 ")
-      execute("insert into custom_primary_key_dest set id = 1001, pk = 3")
-
-      Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
-      assert log_messages[1].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
-
-      Lhm::Chunker.new(migration, connection, {:raise_on_warnings => false, throttler: throttler, printer: printer} ).run
-      assert log_messages[4].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
+      execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
 
       exception = assert_raises(Lhm::Error) do
         Lhm::Chunker.new(migration, connection, {:raise_on_warnings => true, throttler: throttler, printer: printer} ).run
       end
 
       assert_match "Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'", exception.message
+    end
+
+    it 'should copy and warn on unexpected warnings by default' do
+      origin = table_create(:custom_primary_key)
+      destination = table_create(:custom_primary_key_dest)
+      migration = Lhm::Migration.new(origin, destination)
+
+      execute("insert into custom_primary_key set id = 1001, pk = 1 ")
+      execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
+
+      Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
+      assert log_messages[1].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
+    end
+
+    it 'should copy and warn on unexpected warnings' do
+      origin = table_create(:custom_primary_key)
+      destination = table_create(:custom_primary_key_dest)
+      migration = Lhm::Migration.new(origin, destination)
+
+      execute("insert into custom_primary_key set id = 1001, pk = 1 ")
+      execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
+
+      Lhm::Chunker.new(migration, connection, {:raise_on_warnings => false, throttler: throttler, printer: printer} ).run
+      assert log_messages[1].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
     end
 
     it 'should create the modified destination, even if the source is empty' do
