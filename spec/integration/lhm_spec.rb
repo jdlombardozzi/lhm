@@ -21,6 +21,8 @@ describe Lhm do
           :type           => 'int(12)',
           :is_nullable    => 'YES',
           :column_default => '0',
+          :comment => '',
+          :collate => nil,
         })
       end
     end
@@ -37,6 +39,8 @@ describe Lhm do
           :type           => 'int(12)',
           :is_nullable    => 'YES',
           :column_default => '0',
+          :comment => '',
+          :collate => nil,
         })
       end
     end
@@ -53,6 +57,8 @@ describe Lhm do
           :type           => 'int(12)',
           :is_nullable    => 'YES',
           :column_default => '0',
+          :comment => '',
+          :collate => nil,
         })
       end
     end
@@ -130,6 +136,8 @@ describe Lhm do
           :type => 'int(12)',
           :is_nullable => 'YES',
           :column_default => '0',
+          :comment => '',
+          :collate => nil,
         })
       end
     end
@@ -236,6 +244,8 @@ describe Lhm do
           :type => 'tinyint(1)',
           :is_nullable => 'YES',
           :column_default => nil,
+          :comment => '',
+          :collate => nil,
         })
       end
     end
@@ -250,6 +260,8 @@ describe Lhm do
           :type => 'varchar(20)',
           :is_nullable => 'NO',
           :column_default => 'none',
+          :comment => '',
+          :collate => 'utf8_general_ci',
         })
       end
     end
@@ -266,6 +278,8 @@ describe Lhm do
           :type => 'int(5)',
           :is_nullable => 'NO',
           :column_default => nil,
+          :comment => '',
+          :collate => nil,
         })
       end
     end
@@ -285,6 +299,8 @@ describe Lhm do
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => nil,
+          :comment => '',
+          :collate => 'utf8_general_ci',
         })
 
         result = select_one('SELECT login from users')
@@ -308,6 +324,8 @@ describe Lhm do
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => 'Superfriends',
+          :comment => '',
+          :collate => 'utf8_general_ci',
         })
 
         result = select_one('SELECT `fnord` from users')
@@ -316,7 +334,89 @@ describe Lhm do
       end
     end
 
-    it 'should rename a column with nullable' do
+    it 'should rename a column with a collate' do
+      table_create(:users)
+
+      execute("ALTER TABLE users MODIFY `username` varchar(255) COLLATE utf8mb4_unicode_ci NULL")
+      execute("INSERT INTO users (username) VALUES ('a user')")
+
+      Lhm.change_table(:users, :atomic_switch => false) do |t|
+        t.rename_column(:username, :user_name)
+      end
+
+      slave do
+        table_data = table_read(:users)
+        assert_nil table_data.columns['username']
+        table_read(:users).columns['user_name'].must_equal({
+             :type => 'varchar(255)',
+             :is_nullable => 'YES',
+             :column_default => nil,
+             :comment => '',
+             :collate => 'utf8mb4_unicode_ci',
+           })
+
+        result = select_one('SELECT `user_name` from users')
+        result = result['user_name'] if result.respond_to?(:has_key?)
+        result.must_equal('a user')
+      end
+    end
+
+
+    it 'should rename a column with a comment' do
+      table_create(:users)
+
+      execute("ALTER TABLE users MODIFY `reference` int(11) DEFAULT NULL COMMENT 'RefComment'")
+      execute("INSERT INTO users (username,reference) VALUES ('a user', 10)")
+
+      Lhm.change_table(:users, :atomic_switch => false) do |t|
+        t.rename_column(:reference, :ref)
+      end
+
+      slave do
+        table_data = table_read(:users)
+        assert_nil table_data.columns['reference']
+        table_read(:users).columns['ref'].must_equal({
+           :type => 'int(11)',
+           :is_nullable => 'YES',
+           :column_default => nil,
+           :comment => 'RefComment',
+           :collate => nil,
+         })
+
+        result = select_one('SELECT `ref` from users')
+        result = result['ref'] if result.respond_to?(:has_key?)
+        result.must_equal(10)
+      end
+    end
+
+    it 'should rename a column with a default null' do
+      table_create(:users)
+
+      execute("ALTER TABLE users MODIFY `group` varchar(255) NULL DEFAULT NULL")
+      execute("INSERT INTO users (username) VALUES ('a user')")
+
+      Lhm.change_table(:users, :atomic_switch => false) do |t|
+        t.rename_column(:group, :fnord)
+      end
+
+      slave do
+        table_data = table_read(:users)
+        assert_nil table_data.columns['group']
+        table_read(:users).columns['fnord'].must_equal({
+           :type => 'varchar(255)',
+           :is_nullable => 'YES',
+           :column_default => nil,
+           :comment => '',
+           :collate => 'utf8_general_ci',
+         })
+
+        result = select_one('SELECT `fnord` from users')
+        result = result['fnord'] if result.respond_to?(:has_key?)
+        result.must_equal(nil)
+      end
+    end
+
+    it 'should rename a colmn with nullable' do
       table_create(:users)
       execute("INSERT INTO users (username) VALUES ('a user')")
 
@@ -331,6 +431,8 @@ describe Lhm do
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => nil,
+          :comment => '',
+          :collate => 'utf8_general_ci',
         })
 
         result = select_one('SELECT `user_name` from users')
@@ -356,6 +458,8 @@ describe Lhm do
           :type => 'varchar(255)',
           :is_nullable => 'NO',
           :column_default => nil,
+          :comment => '',
+          :collate => 'utf8_general_ci',
         })
 
         result = select_one('SELECT `user_name` from users')
@@ -401,6 +505,8 @@ describe Lhm do
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => 'Superfriends',
+          :comment => '',
+          :collate => 'utf8_general_ci',
         })
       end
     end

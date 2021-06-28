@@ -54,11 +54,15 @@ module Lhm
             column_type    = struct_key(defn, 'COLUMN_TYPE')
             is_nullable    = struct_key(defn, 'IS_NULLABLE')
             column_default = struct_key(defn, 'COLUMN_DEFAULT')
+            comment = struct_key(defn, 'COLUMN_COMMENT')
+            collate = struct_key(defn, 'COLLATION_NAME')
 
             table.columns[defn[column_name]] = {
               :type => defn[column_type],
               :is_nullable => defn[is_nullable],
               :column_default => defn[column_default],
+              :comment => defn[comment],
+              :collate => defn[collate],
             }
           end
 

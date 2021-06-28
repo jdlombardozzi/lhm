@@ -87,6 +87,8 @@ module Lhm
 
       definition += ' NOT NULL' unless col[:is_nullable] == "YES"
       definition += " DEFAULT #{@connection.quote(col[:column_default])}" if col[:column_default]
+      definition += " COMMENT #{@connection.quote(col[:comment])}" if col[:comment]
+      definition += " COLLATE #{@connection.quote(col[:collate])}" if col[:collate]
 
       ddl('alter table `%s` change column `%s` `%s` %s' % [@name, old, nu, definition])
       @renames[old.to_s] = nu.to_s
