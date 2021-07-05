@@ -1,3 +1,7 @@
+# 3.3.5 (Jul 5, 2021)
+
+* Add comment and collate copying to rename_column
+
 # 3.3.4 (Feb 9, 2021)
 
 * Run migrations inline in local/CI environment
