@@ -1,6 +1,7 @@
-# 3.3.5 (Jul 5, 2021)
+# 3.3.5 (Jul 5, 2021) 
 
 * Add comment and collate copying to rename_column
+* Publish to rubygems
 
 # 3.3.4 (Feb 9, 2021)
 
