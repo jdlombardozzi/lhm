@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version       = Lhm::VERSION
   s.licenses      = ['BSD-3-Clause']
   s.platform      = Gem::Platform::RUBY
-  s.authors       = ['SoundCloud', 'Rany Keddo', 'Tobias Bielohlawek', 'Tobias Schmidt']
+  s.authors       = ['SoundCloud', 'Shopify', 'Rany Keddo', 'Tobias Bielohlawek', 'Tobias Schmidt']
   s.email         = %q{database-engineering@shopify.com}
   s.summary       = %q{online schema changer for mysql}
   s.description   = %q{Migrate large tables without downtime by copying to a temporary table in chunks. The old table is not dropped. Instead, it is moved to timestamp_table_name for verification.}
