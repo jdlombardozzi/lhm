@@ -1,4 +1,8 @@
-# 3.3.5 (Jul 5, 2021) 
+# 3.3.6 (Jul 7, 2021)
+
+* Add lhm-shopify.rb to require lhm
+
+# 3.3.5 (Jul 5, 2021)
 
 * Add comment and collate copying to rename_column
 * Publish to rubygems
