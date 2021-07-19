@@ -51,9 +51,9 @@ describe Lhm::Chunker do
       destination = table_create(:composite_primary_key_dest)
       migration = Lhm::Migration.new(origin, destination)
 
-      execute("insert into composite_primary_key set id = 1001, shop_id = 1 ")
-      execute("insert into composite_primary_key set id = 1002, shop_id = 1 ")
-      execute("insert into composite_primary_key_dest set id = 1002, shop_id = 1 ")
+      execute("insert into composite_primary_key set id = 1001, shop_id = 1")
+      execute("insert into composite_primary_key set id = 1002, shop_id = 1")
+      execute("insert into composite_primary_key_dest set id = 1002, shop_id = 1")
 
       Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
 
@@ -67,7 +67,7 @@ describe Lhm::Chunker do
       destination = table_create(:custom_primary_key_dest)
       migration = Lhm::Migration.new(origin, destination)
 
-      execute("insert into custom_primary_key set id = 1001, pk = 1 ")
+      execute("insert into custom_primary_key set id = 1001, pk = 1")
       execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
 
       exception = assert_raises(Lhm::Error) do
@@ -82,11 +82,30 @@ describe Lhm::Chunker do
       destination = table_create(:custom_primary_key_dest)
       migration = Lhm::Migration.new(origin, destination)
 
-      execute("insert into custom_primary_key set id = 1001, pk = 1 ")
+      execute("insert into custom_primary_key set id = 1001, pk = 1")
       execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
 
       Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
+
+      assert_equal 2, log_messages.length
       assert log_messages[1].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
+    end
+
+    it 'should log two times for two unexpected warnings' do
+      origin = table_create(:custom_primary_key)
+      destination = table_create(:custom_primary_key_dest)
+      migration = Lhm::Migration.new(origin, destination)
+
+      execute("insert into custom_primary_key set id = 1001, pk = 1")
+      execute("insert into custom_primary_key set id = 1002, pk = 2")
+      execute("insert into custom_primary_key_dest set id = 1001, pk = 3")
+      execute("insert into custom_primary_key_dest set id = 1002, pk = 4")
+
+      Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
+
+      assert_equal 3, log_messages.length
+      assert log_messages[1].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
+      assert log_messages[2].include?("Unexpected warning found for inserted row: Duplicate entry '1002' for key 'index_custom_primary_key_on_id'"), log_messages
     end
 
     it 'should copy and warn on unexpected warnings' do
@@ -94,10 +113,12 @@ describe Lhm::Chunker do
       destination = table_create(:custom_primary_key_dest)
       migration = Lhm::Migration.new(origin, destination)
 
-      execute("insert into custom_primary_key set id = 1001, pk = 1 ")
+      execute("insert into custom_primary_key set id = 1001, pk = 1")
       execute("insert into custom_primary_key_dest set id = 1001, pk = 2")
 
       Lhm::Chunker.new(migration, connection, {raise_on_warnings: false, throttler: throttler, printer: printer} ).run
+
+      assert_equal 2, log_messages.length
       assert log_messages[1].include?("Unexpected warning found for inserted row: Duplicate entry '1001' for key 'index_custom_primary_key_on_id'"), log_messages
     end
 
