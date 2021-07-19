@@ -1,3 +1,7 @@
+# 3.4.0 (Jul 19, 2021)
+
+* Log or raise on unexpected duplicated entry warnings during INSERT IGNORE (https://github.com/Shopify/lhm/pull/100)
+
 # 3.3.6 (Jul 7, 2021)
 
 * Add lhm-shopify.rb to require lhm
