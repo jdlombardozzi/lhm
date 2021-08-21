@@ -90,6 +90,20 @@ describe Lhm, 'cleanup' do
         Lhm.cleanup(true).must_equal(true)
         Lhm.cleanup.must_equal(true)
       end
+
+      it 'outputs deleted tables and triggers' do
+        output = capture_stdout do
+          Lhm.cleanup(true)
+        end
+        output.must_include(
+          'Dropped triggers lhmt_ins_users, lhmt_upd_users, lhmt_del_users, ' \
+          'lhmt_ins_permissions, lhmt_upd_permissions, lhmt_del_permissions'
+        )
+        output.must_include(
+          'Dropped tables lhmt_ins_users, lhmt_upd_users, lhmt_del_users, ' \
+          'lhmt_ins_permissions, lhmt_upd_permissions, lhmt_del_permissions'
+        )
+      end
     end
 
     describe 'cleanup_current_run' do
