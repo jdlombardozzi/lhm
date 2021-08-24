@@ -114,9 +114,13 @@ module Lhm
       triggers.each do |trigger|
         connection.execute("drop trigger if exists #{trigger}")
       end
+      puts "Dropped triggers #{triggers.join(', ')}"
+
       tables.each do |table|
         connection.execute("drop table if exists #{table}")
       end
+      puts "Dropped tables #{triggers.join(', ')}"
+
       true
     elsif tables.empty? && triggers.empty?
       puts 'Everything is clean. Nothing to do.'
