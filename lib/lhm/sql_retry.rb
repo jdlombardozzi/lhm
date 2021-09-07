@@ -18,6 +18,8 @@ module Lhm
     def initialize(connection, options = {})
       @connection = connection
       @global_retry_config = default_retry_config.dup.merge!(options)
+      @log_prefix = options.delete(:log_prefix)
+      @initial_host = hostname
     end
 
     def with_retries(retry_config = {})
@@ -25,6 +27,10 @@ module Lhm
       @log_prefix = cnf.delete(:log_prefix) || "SQL Retry"
       Retriable.retriable(cnf) do
         yield(@connection)
+      rescue ConnectionError
+        with_retry_for_host(retry_config) do
+          @connection.reconnect!
+        end
       end
     end
 
@@ -35,6 +41,19 @@ module Lhm
     def log_with_prefix(message, level = :info)
       message.prepend("[#{@log_prefix}] ") if @log_prefix
       Lhm.logger.send(level, message)
+    end
+
+    def hostname
+      @connection&.query("SELECT @@hostname as host, @@port as port;").first.tap do |record|
+        record&.[]("host") + ":" + record&.[]("port")
+      end
+    end
+
+    def with_retry_for_host(retry_config)
+      Retriable.retriable(retry_config) do
+        yield
+        raise "Different MySQL server host than the initial host" if hostname != @initial_host
+      end
     end
 
     # For a full list of configuration options see https://github.com/kamui/retriable
@@ -49,6 +68,7 @@ module Lhm
             /Lost connection to MySQL server during query/,
             /Max connect timeout reached/,
             /Unknown MySQL server host/,
+            /Different MySQL server host than the initial host/,
           ]
         },
         multiplier: 1, # each successive interval grows by this factor
