@@ -11,9 +11,9 @@ describe Lhm do
   describe 'logger' do
 
     it 'should use the default parameters if no logger explicitly set' do
-      Lhm.logger.must_be_kind_of Logger
-      Lhm.logger.level.must_equal Logger::INFO
-      Lhm.logger.instance_eval { @logdev }.dev.must_equal STDOUT
+      value(Lhm.logger).must_be_kind_of Logger
+      value(Lhm.logger.level).must_equal Logger::INFO
+      value(Lhm.logger.instance_eval { @logdev }.dev).must_equal STDOUT
     end
 
     it 'should use s new logger if set' do
@@ -21,9 +21,9 @@ describe Lhm do
       l.level = Logger::ERROR
       Lhm.logger = l
 
-      Lhm.logger.level.must_equal Logger::ERROR
-      Lhm.logger.instance_eval { @logdev }.dev.must_be_kind_of File
-      Lhm.logger.instance_eval { @logdev }.dev.path.must_equal 'omg.ponies'
+      value(Lhm.logger.level).must_equal Logger::ERROR
+      value(Lhm.logger.instance_eval { @logdev }.dev).must_be_kind_of File
+      value(Lhm.logger.instance_eval { @logdev }.dev.path).must_equal 'omg.ponies'
     end
   end
 end

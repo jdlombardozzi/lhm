@@ -26,7 +26,7 @@ describe Lhm::Entangler do
       end
 
       slave do
-        count(:destination, 'common', 'inserted').must_equal(1)
+        value(count(:destination, 'common', 'inserted')).must_equal(1)
       end
     end
 
@@ -38,7 +38,7 @@ describe Lhm::Entangler do
       end
 
       slave do
-        count(:destination, 'common', 'inserted').must_equal(0)
+        value(count(:destination, 'common', 'inserted')).must_equal(0)
       end
     end
 
@@ -49,7 +49,7 @@ describe Lhm::Entangler do
       end
 
       slave do
-        count(:destination, 'common', 'updated').must_equal(1)
+        value(count(:destination, 'common', 'updated')).must_equal(1)
       end
     end
 
@@ -59,7 +59,7 @@ describe Lhm::Entangler do
       execute("insert into origin (common) values ('inserted')")
 
       slave do
-        count(:destination, 'common', 'inserted').must_equal(0)
+        value(count(:destination, 'common', 'inserted')).must_equal(0)
       end
     end
   end

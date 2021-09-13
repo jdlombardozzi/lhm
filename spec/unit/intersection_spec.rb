@@ -18,7 +18,7 @@ describe Lhm::Intersection do
     destination.columns['retained'] = varchar
 
     intersection = Lhm::Intersection.new(origin, destination)
-    intersection.destination.include?('dropped').must_equal(false)
+    value(intersection.destination.include?('dropped')).must_equal(false)
   end
 
   it 'should have unchanged columns' do
@@ -30,7 +30,7 @@ describe Lhm::Intersection do
     destination.columns['retained'] = varchar
 
     intersection = Lhm::Intersection.new(origin, destination)
-    intersection.destination.must_equal(['retained'])
+    value(intersection.destination).must_equal(['retained'])
   end
 
   it 'should have renamed columns' do
@@ -41,8 +41,8 @@ describe Lhm::Intersection do
     destination.columns['new_name'] = varchar
 
     intersection = Lhm::Intersection.new(origin, destination, { 'old_name' => 'new_name' })
-    intersection.origin.must_equal(['old_name'])
-    intersection.destination.must_equal(['new_name'])
+    value(intersection.origin).must_equal(['old_name'])
+    value(intersection.destination).must_equal(['new_name'])
   end
 
   def varchar

@@ -24,7 +24,7 @@ describe Lhm do
     session_innodb_lock_wait_timeout = connection.select_one("SHOW SESSION VARIABLES LIKE 'innodb_lock_wait_timeout'")['Value'].to_i
     session_lock_wait_timeout = connection.select_one("SHOW SESSION VARIABLES LIKE 'lock_wait_timeout'")['Value'].to_i
 
-    session_lock_wait_timeout.must_equal global_lock_wait_timeout + Lhm::Invoker::LOCK_WAIT_TIMEOUT_DELTA
-    session_innodb_lock_wait_timeout.must_equal global_innodb_lock_wait_timeout + Lhm::Invoker::LOCK_WAIT_TIMEOUT_DELTA
+    value(session_lock_wait_timeout).must_equal global_lock_wait_timeout + Lhm::Invoker::LOCK_WAIT_TIMEOUT_DELTA
+    value(session_innodb_lock_wait_timeout).must_equal global_innodb_lock_wait_timeout + Lhm::Invoker::LOCK_WAIT_TIMEOUT_DELTA
   end
 end

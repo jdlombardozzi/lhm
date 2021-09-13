@@ -34,7 +34,7 @@ describe Lhm::Entangler do
         values (`NEW`.`info`, `NEW`.`tags`)
       }
 
-      @entangler.entangle.must_include strip(ddl)
+      value(@entangler.entangle).must_include strip(ddl)
     end
 
     it 'should create an update trigger to the destination table' do
@@ -45,7 +45,7 @@ describe Lhm::Entangler do
         values (`NEW`.`info`, `NEW`.`tags`)
       }
 
-      @entangler.entangle.must_include strip(ddl)
+      value(@entangler.entangle).must_include strip(ddl)
     end
 
     it 'should create a delete trigger to the destination table' do
@@ -56,7 +56,7 @@ describe Lhm::Entangler do
         where `destination`.`id` = OLD.`id`
       }
 
-      @entangler.entangle.must_include strip(ddl)
+      value(@entangler.entangle).must_include strip(ddl)
     end
 
     it 'should retry trigger creation when it hits a lock wait timeout' do
@@ -101,24 +101,24 @@ describe Lhm::Entangler do
       end
 
       it 'should use truncated names' do
-        @entangler.trigger(:ins).length.must_be :<=, 64
-        @entangler.trigger(:upd).length.must_be :<=, 64
-        @entangler.trigger(:del).length.must_be :<=, 64
+        value(@entangler.trigger(:ins).length).must_be :<=, 64
+        value(@entangler.trigger(:upd).length).must_be :<=, 64
+        value(@entangler.trigger(:del).length).must_be :<=, 64
       end
     end
   end
 
   describe 'removal' do
     it 'should remove insert trigger' do
-      @entangler.untangle.must_include('drop trigger if exists `lhmt_ins_origin`')
+      value(@entangler.untangle).must_include('drop trigger if exists `lhmt_ins_origin`')
     end
 
     it 'should remove update trigger' do
-      @entangler.untangle.must_include('drop trigger if exists `lhmt_upd_origin`')
+      value(@entangler.untangle).must_include('drop trigger if exists `lhmt_upd_origin`')
     end
 
     it 'should remove delete trigger' do
-      @entangler.untangle.must_include('drop trigger if exists `lhmt_del_origin`')
+      value(@entangler.untangle).must_include('drop trigger if exists `lhmt_del_origin`')
     end
   end
 end

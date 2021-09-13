@@ -29,7 +29,7 @@ describe Lhm::Chunker do
       Lhm::Chunker.new(@migration, connection, {throttler: throttler, printer: printer} ).run
 
       slave do
-        count_all(@destination.name).must_equal(1)
+        value(count_all(@destination.name)).must_equal(1)
       end
 
     end
@@ -42,7 +42,7 @@ describe Lhm::Chunker do
       Lhm::Chunker.new(@migration, connection, {throttler: throttler, printer: printer} ).run
 
       slave do
-        count_all(@destination.name).must_equal(2)
+        value(count_all(@destination.name)).must_equal(2)
       end
     end
 
@@ -58,7 +58,7 @@ describe Lhm::Chunker do
       Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
 
       slave do
-        count_all(destination.name).must_equal(2)
+        value(count_all(destination.name)).must_equal(2)
       end
     end
 
@@ -128,7 +128,7 @@ describe Lhm::Chunker do
       Lhm::Chunker.new(@migration, connection, {throttler: throttler, printer: printer} ).run
 
       slave do
-        count_all(@destination.name).must_equal(0)
+        value(count_all(@destination.name)).must_equal(0)
       end
 
     end
@@ -145,7 +145,7 @@ describe Lhm::Chunker do
       ).run
 
       slave do
-        count_all(@destination.name).must_equal(23)
+        value(count_all(@destination.name)).must_equal(23)
       end
 
       printer.verify
@@ -161,7 +161,7 @@ describe Lhm::Chunker do
       ).run
 
       slave do
-        count_all(@destination.name).must_equal(11)
+        value(count_all(@destination.name)).must_equal(11)
       end
 
     end
@@ -178,7 +178,7 @@ describe Lhm::Chunker do
       ).run
 
       slave do
-        count_all(@destination.name).must_equal(23)
+        value(count_all(@destination.name)).must_equal(23)
       end
 
       printer.verify
@@ -203,7 +203,7 @@ describe Lhm::Chunker do
       assert_equal(Lhm::Throttler::SlaveLag::INITIAL_TIMEOUT * 2 * 2, throttler.timeout_seconds)
 
       slave do
-        count_all(@destination.name).must_equal(15)
+        value(count_all(@destination.name)).must_equal(15)
       end
     end
 
@@ -238,7 +238,7 @@ describe Lhm::Chunker do
       assert_equal(0, throttler.send(:max_current_slave_lag))
 
       slave do
-        count_all(@destination.name).must_equal(15)
+        value(count_all(@destination.name)).must_equal(15)
       end
 
       printer.verify
@@ -260,7 +260,7 @@ describe Lhm::Chunker do
       assert_match "Verification failed, aborting early", exception.message
 
       slave do
-        count_all(@destination.name).must_equal(0)
+        value(count_all(@destination.name)).must_equal(0)
       end
     end
   end

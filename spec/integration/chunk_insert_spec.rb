@@ -22,7 +22,7 @@ describe Lhm::ChunkInsert do
       @instance.insert_and_return_count_of_rows_created
 
       slave do
-        count_all(@destination.name).must_equal(1)
+        value(count_all(@destination.name)).must_equal(1)
       end
     end
   end
