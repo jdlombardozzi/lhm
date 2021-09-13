@@ -11,7 +11,7 @@ describe Lhm::Table do
   describe 'names' do
     it 'should name destination' do
       @table = Lhm::Table.new('users')
-      @table.destination_name.must_equal 'lhmn_users'
+      value(@table.destination_name).must_equal 'lhmn_users'
     end
   end
 
@@ -23,25 +23,25 @@ describe Lhm::Table do
     it 'should be satisfied with a single column primary key called id' do
       @table = Lhm::Table.new('table', 'id')
       set_columns(@table, { 'id' => { :type => 'int(1)' } })
-      @table.satisfies_id_column_requirement?.must_equal true
+      value(@table.satisfies_id_column_requirement?).must_equal true
     end
 
     it 'should be satisfied with a primary key not called id, as long as there is still an id' do
       @table = Lhm::Table.new('table', 'uuid')
       set_columns(@table, { 'id' => { :type => 'int(1)' } })
-      @table.satisfies_id_column_requirement?.must_equal true
+      value(@table.satisfies_id_column_requirement?).must_equal true
     end
 
     it 'should be satisifed if display attributes are not present (deprecated in mysql 8)' do
       @table = Lhm::Table.new('table', 'id')
       set_columns(@table, { 'id' => { :type => 'int' } })
-      @table.satisfies_id_column_requirement?.must_equal true
+      value(@table.satisfies_id_column_requirement?).must_equal true
     end
 
     it 'should not be satisfied if id is not numeric' do
       @table = Lhm::Table.new('table', 'id')
       set_columns(@table, { 'id' => { :type => 'varchar(255)' } })
-      @table.satisfies_id_column_requirement?.must_equal false
+      value(@table.satisfies_id_column_requirement?).must_equal false
     end
   end
 end

@@ -58,7 +58,7 @@ describe Lhm::AtomicSwitcher do
       switcher.send :define_singleton_method, :atomic_switch do
         'SELECT * FROM nonexistent'
       end
-      -> { switcher.run }.must_raise(ActiveRecord::StatementInvalid)
+      value(-> { switcher.run }).must_raise(ActiveRecord::StatementInvalid)
     end
 
     it "should raise when destination doesn't exist" do
@@ -75,8 +75,8 @@ describe Lhm::AtomicSwitcher do
       switcher.run
 
       slave do
-        data_source_exists?(@origin).must_equal true
-        table_read(@migration.archive_name).columns.keys.must_include 'origin'
+        value(data_source_exists?(@origin)).must_equal true
+        value(table_read(@migration.archive_name).columns.keys).must_include 'origin'
       end
     end
 
@@ -85,8 +85,8 @@ describe Lhm::AtomicSwitcher do
       switcher.run
 
       slave do
-        data_source_exists?(@destination).must_equal false
-        table_read(@origin.name).columns.keys.must_include 'destination'
+        value(data_source_exists?(@destination)).must_equal false
+        value(table_read(@origin.name).columns.keys).must_include 'destination'
       end
     end
   end

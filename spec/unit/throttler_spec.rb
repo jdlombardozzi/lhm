@@ -23,11 +23,11 @@ describe Lhm::Throttler do
       end
 
       it 'instantiates the time throttle' do
-        @mock.throttler.class.must_equal Lhm::Throttler::Time
+        value(@mock.throttler.class).must_equal Lhm::Throttler::Time
       end
 
       it 'returns 2 seconds as time' do
-        @mock.throttler.timeout_seconds.must_equal 2
+        value(@mock.throttler.timeout_seconds).must_equal 2
       end
     end
 
@@ -37,11 +37,11 @@ describe Lhm::Throttler do
       end
 
       it 'instantiates the slave_lag throttle' do
-        @mock.throttler.class.must_equal Lhm::Throttler::SlaveLag
+        value(@mock.throttler.class).must_equal Lhm::Throttler::SlaveLag
       end
 
       it 'returns 20 seconds as allowed_lag' do
-        @mock.throttler.allowed_lag.must_equal 20
+        value(@mock.throttler.allowed_lag).must_equal 20
       end
     end
 
@@ -58,11 +58,11 @@ describe Lhm::Throttler do
       end
 
       it 'returns the instace given' do
-        @mock.throttler.must_equal @instance
+        value(@mock.throttler).must_equal @instance
       end
 
       it 'returns 0 seconds as time' do
-        @mock.throttler.timeout_seconds.must_equal 0
+        value(@mock.throttler.timeout_seconds).must_equal 0
       end
     end
 
@@ -78,11 +78,11 @@ describe Lhm::Throttler do
       end
 
       it 'returns the instace given' do
-        @mock.throttler.must_equal @instance
+        value(@mock.throttler).must_equal @instance
       end
 
       it 'returns 0 seconds as time' do
-        @mock.throttler.timeout_seconds.must_equal 0
+        value(@mock.throttler.timeout_seconds).must_equal 0
       end
     end
 
@@ -94,7 +94,7 @@ describe Lhm::Throttler do
       end
 
       it 'has the same class as given' do
-        @mock.throttler.class.must_equal @klass
+        value(@mock.throttler.class).must_equal @klass
       end
     end
 
@@ -106,7 +106,7 @@ describe Lhm::Throttler do
       end
 
       it 'has the same class as given' do
-        @mock.throttler.class.must_equal @klass
+        value(@mock.throttler.class).must_equal @klass
       end
     end
   end
@@ -114,11 +114,11 @@ describe Lhm::Throttler do
   describe '#throttler' do
 
     it 'returns the default Time based' do
-      @mock.throttler.class.must_equal Lhm::Throttler::Time
+      value(@mock.throttler.class).must_equal Lhm::Throttler::Time
     end
 
     it 'should default to 100 milliseconds' do
-      @mock.throttler.timeout_seconds.must_equal 0.1
+      value(@mock.throttler.timeout_seconds).must_equal 0.1
     end
   end
 end

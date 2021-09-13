@@ -17,7 +17,7 @@ describe Lhm do
       end
 
       slave do
-        table_read(:users).columns['logins'].must_equal({
+        value(table_read(:users).columns['logins']).must_equal({
           :type           => 'int(12)',
           :is_nullable    => 'YES',
           :column_default => '0',
@@ -35,7 +35,7 @@ describe Lhm do
       end
 
       slave do
-        table_read(:custom_primary_key).columns['logins'].must_equal({
+        value(table_read(:custom_primary_key).columns['logins']).must_equal({
           :type           => 'int(12)',
           :is_nullable    => 'YES',
           :column_default => '0',
@@ -53,7 +53,7 @@ describe Lhm do
       end
 
       slave do
-        table_read(:composite_primary_key).columns['logins'].must_equal({
+        value(table_read(:composite_primary_key).columns['logins']).must_equal({
           :type           => 'int(12)',
           :is_nullable    => 'YES',
           :column_default => '0',
@@ -82,7 +82,7 @@ describe Lhm do
         end
 
         slave do
-          connection.primary_key('users').must_equal(['username', 'id'])
+          value(connection.primary_key('users')).must_equal(['username', 'id'])
         end
       end
 
@@ -104,7 +104,7 @@ describe Lhm do
 
         it 'migrates the existing data' do
           slave do
-            count_all(:permissions).must_equal(11)
+            value(count_all(:permissions)).must_equal(11)
           end
         end
       end
@@ -120,7 +120,7 @@ describe Lhm do
 
         it 'migrates all data' do
           slave do
-            count_all(:permissions).must_equal(13)
+            value(count_all(:permissions)).must_equal(13)
           end
         end
       end
@@ -132,7 +132,7 @@ describe Lhm do
       end
 
       slave do
-        table_read(:users).columns['logins'].must_equal({
+        value(table_read(:users).columns['logins']).must_equal({
           :type => 'int(12)',
           :is_nullable => 'YES',
           :column_default => '0',
@@ -150,7 +150,7 @@ describe Lhm do
       end
 
       slave do
-        count_all(:users).must_equal(23)
+        value(count_all(:users)).must_equal(23)
       end
     end
 
@@ -170,7 +170,7 @@ describe Lhm do
       end
 
       slave do
-        index_on_columns?(:users, [:comment, :created_at]).must_equal(true)
+        value(index_on_columns?(:users, [:comment, :created_at])).must_equal(true)
       end
     end
 
@@ -180,7 +180,7 @@ describe Lhm do
       end
 
       slave do
-        index?(:users, :my_index_name).must_equal(true)
+        value(index?(:users, :my_index_name)).must_equal(true)
       end
     end
 
@@ -190,7 +190,7 @@ describe Lhm do
       end
 
       slave do
-        index_on_columns?(:users, :group).must_equal(true)
+        value(index_on_columns?(:users, :group)).must_equal(true)
       end
     end
 
@@ -200,7 +200,7 @@ describe Lhm do
       end
 
       slave do
-        index_on_columns?(:users, :comment, :unique).must_equal(true)
+        value(index_on_columns?(:users, :comment, :unique)).must_equal(true)
       end
     end
 
@@ -210,7 +210,7 @@ describe Lhm do
       end
 
       slave do
-        index_on_columns?(:users, [:username, :created_at]).must_equal(false)
+        value(index_on_columns?(:users, [:username, :created_at])).must_equal(false)
       end
     end
 
@@ -220,7 +220,7 @@ describe Lhm do
       end
 
       slave do
-        index?(:users, :index_with_a_custom_name).must_equal(false)
+        value(index?(:users, :index_with_a_custom_name)).must_equal(false)
       end
     end
 
@@ -230,7 +230,7 @@ describe Lhm do
       end
 
       slave do
-        index?(:users, :index_with_a_custom_name).must_equal(false)
+        value(index?(:users, :index_with_a_custom_name)).must_equal(false)
       end
     end
 
@@ -240,7 +240,7 @@ describe Lhm do
       end
 
       slave do
-        table_read(:users).columns['flag'].must_equal({
+        value(table_read(:users).columns['flag']).must_equal({
           :type => 'tinyint(1)',
           :is_nullable => 'YES',
           :column_default => nil,
@@ -256,7 +256,7 @@ describe Lhm do
       end
 
       slave do
-        table_read(:users).columns['comment'].must_equal({
+        value(table_read(:users).columns['comment']).must_equal({
           :type => 'varchar(20)',
           :is_nullable => 'NO',
           :column_default => 'none',
@@ -274,7 +274,7 @@ describe Lhm do
       end
 
       slave do
-        table_read(:small_table).columns['id'].must_equal({
+        value(table_read(:small_table).columns['id']).must_equal({
           :type => 'int(5)',
           :is_nullable => 'NO',
           :column_default => nil,
@@ -295,7 +295,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
-        table_read(:users).columns['login'].must_equal({
+        value(table_read(:users).columns['login']).must_equal({
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => nil,
@@ -305,7 +305,7 @@ describe Lhm do
 
         result = select_one('SELECT login from users')
         result = result['login'] if result.respond_to?(:has_key?)
-        result.must_equal('a user')
+        value(result).must_equal('a user')
       end
     end
 
@@ -320,7 +320,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['group']
-        table_read(:users).columns['fnord'].must_equal({
+        value(table_read(:users).columns['fnord']).must_equal({
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => 'Superfriends',
@@ -330,7 +330,7 @@ describe Lhm do
 
         result = select_one('SELECT `fnord` from users')
         result = result['fnord'] if result.respond_to?(:has_key?)
-        result.must_equal('Superfriends')
+        value(result).must_equal('Superfriends')
       end
     end
 
@@ -347,7 +347,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
-        table_read(:users).columns['user_name'].must_equal({
+        value(table_read(:users).columns['user_name']).must_equal({
              :type => 'varchar(255)',
              :is_nullable => 'YES',
              :column_default => nil,
@@ -357,7 +357,7 @@ describe Lhm do
 
         result = select_one('SELECT `user_name` from users')
         result = result['user_name'] if result.respond_to?(:has_key?)
-        result.must_equal('a user')
+        value(result).must_equal('a user')
       end
     end
 
@@ -375,7 +375,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['reference']
-        table_read(:users).columns['ref'].must_equal({
+        value(table_read(:users).columns['ref']).must_equal({
            :type => 'int(11)',
            :is_nullable => 'YES',
            :column_default => nil,
@@ -385,7 +385,7 @@ describe Lhm do
 
         result = select_one('SELECT `ref` from users')
         result = result['ref'] if result.respond_to?(:has_key?)
-        result.must_equal(10)
+        value(result).must_equal(10)
       end
     end
 
@@ -402,7 +402,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['group']
-        table_read(:users).columns['fnord'].must_equal({
+        value(table_read(:users).columns['fnord']).must_equal({
            :type => 'varchar(255)',
            :is_nullable => 'YES',
            :column_default => nil,
@@ -412,7 +412,7 @@ describe Lhm do
 
         result = select_one('SELECT `fnord` from users')
         result = result['fnord'] if result.respond_to?(:has_key?)
-        result.must_equal(nil)
+        assert_nil(result)
       end
     end
 
@@ -427,7 +427,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
-        table_read(:users).columns['user_name'].must_equal({
+        value(table_read(:users).columns['user_name']).must_equal({
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => nil,
@@ -437,7 +437,7 @@ describe Lhm do
 
         result = select_one('SELECT `user_name` from users')
         result = result['user_name'] if result.respond_to?(:has_key?)
-        result.must_equal('a user')
+        value(result).must_equal('a user')
       end
     end
 
@@ -454,7 +454,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
-        table_read(:users).columns['user_name'].must_equal({
+        value(table_read(:users).columns['user_name']).must_equal({
           :type => 'varchar(255)',
           :is_nullable => 'NO',
           :column_default => nil,
@@ -464,7 +464,7 @@ describe Lhm do
 
         result = select_one('SELECT `user_name` from users')
         result = result['user_name'] if result.respond_to?(:has_key?)
-        result.must_equal('a user')
+        value(result).must_equal('a user')
       end
     end
 
@@ -501,7 +501,7 @@ describe Lhm do
       slave do
         table_data = table_read(:users)
         assert_nil table_data.columns['fnord']
-        table_read(:users).columns['group'].must_equal({
+        value(table_read(:users).columns['group']).must_equal({
           :type => 'varchar(255)',
           :is_nullable => 'YES',
           :column_default => 'Superfriends',
@@ -525,11 +525,11 @@ describe Lhm do
       end
 
       slave do
-        table_read(:lines).columns.must_include 'by'
-        table_read(:lines).columns.wont_include 'lines'
-        index_on_columns?(:lines, ['between'], :unique).must_equal true
-        index_on_columns?(:lines, ['by']).must_equal false
-        count_all(:lines).must_equal(2)
+        value(table_read(:lines).columns).must_include 'by'
+        value(table_read(:lines).columns).wont_include 'lines'
+        value(index_on_columns?(:lines, ['between'], :unique)).must_equal true
+        value(index_on_columns?(:lines, ['by'])).must_equal false
+        value(count_all(:lines)).must_equal(2)
       end
     end
 
@@ -554,7 +554,7 @@ describe Lhm do
         insert.join
 
         slave do
-          count_all(:users).must_equal(60)
+          value(count_all(:users)).must_equal(60)
         end
       end
 
@@ -577,7 +577,7 @@ describe Lhm do
         delete.join
 
         slave do
-          count_all(:users).must_equal(40)
+          value(count_all(:users)).must_equal(40)
         end
       end
     end

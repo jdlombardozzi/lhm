@@ -15,28 +15,24 @@ describe Lhm::Table do
       end
 
       it 'should parse primary key' do
-        @table.pk.must_equal('pk')
+        value(@table.pk).must_equal('pk')
       end
 
       it 'should parse indices' do
-        @table.
-          indices['index_custom_primary_key_on_id'].
-          must_equal(['id'])
+        value(@table.indices['index_custom_primary_key_on_id']).must_equal(['id'])
       end
 
       it 'should parse columns' do
-        @table.
-          columns['id'][:type].
-          must_match(/(bigint|int)\(\d+\)/)
+        value(@table.columns['id'][:type]).must_match(/(bigint|int)\(\d+\)/)
       end
 
       it 'should return true for method that should be renamed' do
-        @table.satisfies_id_column_requirement?.must_equal true
+        value(@table.satisfies_id_column_requirement?).must_equal true
       end
 
       it 'should support bigint tables' do
         @table = table_create(:bigint_table)
-        @table.satisfies_id_column_requirement?.must_equal true
+        value(@table.satisfies_id_column_requirement?).must_equal true
       end
     end
 
@@ -47,7 +43,7 @@ describe Lhm::Table do
 
       it 'should return false for a non-int id column' do
         @table = table_create(:wo_id_int_column)
-        @table.satisfies_id_column_requirement?.must_equal false
+        value(@table.satisfies_id_column_requirement?).must_equal false
       end
     end
   end
@@ -60,15 +56,15 @@ describe Lhm::Table do
       end
 
       it 'should parse table name in show create table' do
-        @table.name.must_equal('users')
+        value(@table.name).must_equal('users')
       end
 
       it 'should parse primary key' do
-        @table.pk.must_equal('id')
+        value(@table.pk).must_equal('id')
       end
 
       it 'should parse column type in show create table' do
-        @table.columns['username'][:type].must_equal('varchar(255)')
+        value(@table.columns['username'][:type]).must_equal('varchar(255)')
       end
 
       it 'should parse column metadata' do
@@ -76,15 +72,11 @@ describe Lhm::Table do
       end
 
       it 'should parse indices' do
-        @table.
-          indices['index_users_on_username_and_created_at'].
-          must_equal(['username', 'created_at'])
+        value(@table.indices['index_users_on_username_and_created_at']).must_equal(['username', 'created_at'])
       end
 
       it 'should parse index' do
-        @table.
-          indices['index_users_on_reference'].
-          must_equal(['reference'])
+        value(@table.indices['index_users_on_reference']).must_equal(['reference'])
       end
     end
   end

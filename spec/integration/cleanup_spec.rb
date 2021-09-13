@@ -34,9 +34,9 @@ describe Lhm, 'cleanup' do
         output = capture_stdout do
           Lhm.cleanup
         end
-        output.must_include('Would drop LHM backup tables')
-        output.must_match(/lhma_[0-9_]*_users/)
-        output.must_match(/lhma_[0-9_]*_permissions/)
+        value(output).must_include('Would drop LHM backup tables')
+        value(output).must_match(/lhma_[0-9_]*_users/)
+        value(output).must_match(/lhma_[0-9_]*_permissions/)
       end
 
       it 'should show temporary tables within range' do
@@ -51,9 +51,9 @@ describe Lhm, 'cleanup' do
         output = capture_stdout do
           Lhm.cleanup false, { :until => Time.now - 86400 }
         end
-        output.must_include('Would drop LHM backup tables')
-        output.must_match(/lhma_[0-9_]*_users/)
-        output.must_match(/lhma_[0-9_]*_permissions/)
+        value(output).must_include('Would drop LHM backup tables')
+        value(output).must_match(/lhma_[0-9_]*_users/)
+        value(output).must_match(/lhma_[0-9_]*_permissions/)
       end
 
       it 'should exclude temporary tables outside range' do
@@ -68,38 +68,38 @@ describe Lhm, 'cleanup' do
         output = capture_stdout do
           Lhm.cleanup false, { :until => Time.now - 172800 }
         end
-        output.must_include('Would drop LHM backup tables')
-        output.wont_match(/lhma_[0-9_]*_users/)
-        output.wont_match(/lhma_[0-9_]*_permissions/)
+        value(output).must_include('Would drop LHM backup tables')
+        value(output).wont_match(/lhma_[0-9_]*_users/)
+        value(output).wont_match(/lhma_[0-9_]*_permissions/)
       end
 
       it 'should show temporary triggers' do
         output = capture_stdout do
           Lhm.cleanup
         end
-        output.must_include('Would drop LHM triggers')
-        output.must_include('lhmt_ins_users')
-        output.must_include('lhmt_del_users')
-        output.must_include('lhmt_upd_users')
-        output.must_include('lhmt_ins_permissions')
-        output.must_include('lhmt_del_permissions')
-        output.must_include('lhmt_upd_permissions')
+        value(output).must_include('Would drop LHM triggers')
+        value(output).must_include('lhmt_ins_users')
+        value(output).must_include('lhmt_del_users')
+        value(output).must_include('lhmt_upd_users')
+        value(output).must_include('lhmt_ins_permissions')
+        value(output).must_include('lhmt_del_permissions')
+        value(output).must_include('lhmt_upd_permissions')
       end
 
       it 'should delete temporary tables' do
-        Lhm.cleanup(true).must_equal(true)
-        Lhm.cleanup.must_equal(true)
+        value(Lhm.cleanup(true)).must_equal(true)
+        value(Lhm.cleanup).must_equal(true)
       end
 
       it 'outputs deleted tables and triggers' do
         output = capture_stdout do
           Lhm.cleanup(true)
         end
-        output.must_include(
+        value(output).must_include(
           'Dropped triggers lhmt_ins_users, lhmt_upd_users, lhmt_del_users, ' \
           'lhmt_ins_permissions, lhmt_upd_permissions, lhmt_del_permissions'
         )
-        output.must_include(
+        value(output).must_include(
           'Dropped tables lhmt_ins_users, lhmt_upd_users, lhmt_del_users, ' \
           'lhmt_ins_permissions, lhmt_upd_permissions, lhmt_del_permissions'
         )

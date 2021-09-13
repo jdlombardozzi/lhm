@@ -20,12 +20,10 @@ describe Lhm::AtomicSwitcher do
 
   describe 'atomic switch' do
     it 'should perform a single atomic rename' do
-      @switcher.
-        atomic_switch.
-        must_equal(
-          "rename table `origin` to `#{ @migration.archive_name }`, " \
-          '`destination` to `origin`'
-        )
+      value(@switcher.atomic_switch).must_equal(
+        "rename table `origin` to `#{ @migration.archive_name }`, " \
+        '`destination` to `origin`'
+      )
     end
   end
 end
