@@ -21,6 +21,7 @@ module Lhm
       @log_prefix = options.delete(:log_prefix)
       @initial_host = hostname
       @retry_config = default_retry_config.dup.merge!(options)
+<<<<<<< HEAD
     end
 
     def with_retries(retry_config = {})
@@ -32,6 +33,17 @@ module Lhm
       #   with_retry_for_host(retry_config) do
       #     @connection.reconnect!
       #   end
+=======
+      @initial_host = hostname
+    end
+
+    def with_retries
+      Retriable.retriable(retry_config) do
+        yield(@connection, @initial_host)
+        #  TODO FIND ACTUAL ERROR
+      rescue ConnectionError
+        raise Lhm::Error.new("Could not reconnected to initial MySQL host. Aborting to avoid data-loss") unless connected_to_initial_host?
+>>>>>>> 2f58af0 (Re-worked the reconnection logic with proxySQL)
       end
     end
 
@@ -45,17 +57,28 @@ module Lhm
     end
 
     def hostname
+<<<<<<< HEAD
       @connection&.query("SELECT @@hostname as host, @@port as port;").first.tap do |record|
+=======
+      # TODO FIGURE OUT THE @@hostname GOING ALWAYS TO MASTER
+      # Force Select on writer hostgroup to get the current writer's hostname
+      @connection&.execute("/*hostgroup=0;*/SELECT @@hostname as host, @@port as port;").to_a.first.tap do |record|
+>>>>>>> 2f58af0 (Re-worked the reconnection logic with proxySQL)
         record&.[]("host") + ":" + record&.[]("port")
       end
     end
 
-    def with_retry_for_host(retry_config)
-      Retriable.retriable(retry_config) do
-        yield
-        raise "Different MySQL server host than the initial host" if hostname != @initial_host
+    def connected_to_initial_host?
+      Retriable.retriable(host_retry_config) do
+        @connection.reconnect!
+        if hostname == @initial_host
+          return true
+        else
+          raise Lhm::Error.new("LHM tried to reconnect to MySQL but encountered different host")
+        end
       end
-    #  TODO add unless raise exception
+
+      false
     end
 
     # For a full list of configuration options see https://github.com/kamui/retriable
@@ -70,7 +93,27 @@ module Lhm
             /Lost connection to MySQL server during query/,
             /Max connect timeout reached/,
             /Unknown MySQL server host/,
-            /Different MySQL server host than the initial host/,
+            /LHM tried to reconnect to MySQL but encountered different host/,
+          ]
+        },
+        multiplier: 1, # each successive interval grows by this factor
+        base_interval: 1, # the initial interval in seconds between tries.
+        tries: 20, # Number of attempts to make at running your code block (includes initial attempt).
+        rand_factor: 0, # percentage to randomize the next retry interval time
+        max_elapsed_time: Float::INFINITY, # max total time in seconds that code is allowed to keep being retried
+        on_retry: Proc.new do |exception, try_number, total_elapsed_time, next_interval|
+          log = "#{exception.class}: '#{exception.message}' - #{try_number} tries in #{total_elapsed_time} seconds and #{next_interval} seconds until the next try."
+          log.prepend("[#{@log_prefix}] ") if @log_prefix
+          Lhm.logger.info(log)
+        end
+      }.freeze
+    end
+
+    def host_retry_config
+      {
+        on: {
+          Lhm::Error => [
+            /LHM tried to reconnect to MySQL but encountered different host/,
           ]
         },
         multiplier: 1, # each successive interval grows by this factor
