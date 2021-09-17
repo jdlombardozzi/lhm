@@ -63,11 +63,12 @@ module Lhm
             retriable_connection.execute(ddl)
           end
         end
+        Lhm.logger.info("Dropped triggers on #{@lhm_triggers_for_origin.join(', ')}")
+        Lhm.logger.info("Dropped tables #{@lhm_triggers_for_origin.join(', ')}")
       end
 
       def report_ddls
-        puts "The following DDLs would be executed:"
-        ddls.each { |ddl| puts ddl }
+        Lhm.logger.info("The following DDLs would be executed: #{ddls}")
       end
     end
   end

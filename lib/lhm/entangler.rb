@@ -94,6 +94,7 @@ module Lhm
           retriable_connection.execute(stmt)
         end
       end
+      Lhm.logger.info("Created triggers on #{@origin.name}")
     end
 
     def after
@@ -102,6 +103,7 @@ module Lhm
           retriable_connection.execute(stmt)
         end
       end
+      Lhm.logger.info("Dropped triggers on #{@origin.name}")
     end
 
     def revert

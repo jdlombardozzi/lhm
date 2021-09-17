@@ -12,26 +12,30 @@ module Lhm
       end
     end
 
-    class Percentage < Base
+    class Percentage
       def initialize
-        super
         @max_length = 0
       end
 
       def notify(lowest, highest)
         return if !highest || highest == 0
+
+        # The argument lowest represents the next_to_insert row id, and highest represents the 
+        # maximum id upto which chunker has to copy the data. 
+        # If all the rows are inserted upto highest, then lowest passed here from chunker was 
+        # highest + 1, which leads to the printer printing the progress > 100%.
+        return if lowest >= highest
+        
         message = "%.2f%% (#{lowest}/#{highest}) complete" % (lowest.to_f / highest * 100.0)
         write(message)
       end
 
       def end
         write('100% complete')
-        @output.write "\n"
       end
 
       def exception(e)
-        write("failed: #{e}")
-        @output.write "\n"
+        Lhm.logger.error("failed: #{e}")
       end
 
       private
@@ -42,7 +46,7 @@ module Lhm
           extra = 0
         end
 
-        @output.write "\r#{message}" + (' ' * extra)
+        Lhm.logger.info(message)
       end
     end
 
