@@ -16,9 +16,9 @@ describe Lhm::AtomicSwitcher do
   describe 'switching' do
     before(:each) do
       Thread.abort_on_exception = true
-      @origin      = table_create('origin')
+      @origin = table_create('origin')
       @destination = table_create('destination')
-      @migration   = Lhm::Migration.new(@origin, @destination)
+      @migration = Lhm::Migration.new(@origin, @destination)
       @logs = StringIO.new
       Lhm.logger = Logger.new(@logs)
       @connection.execute('SET GLOBAL innodb_lock_wait_timeout=3')
@@ -32,11 +32,16 @@ describe Lhm::AtomicSwitcher do
     it 'should retry and log on lock wait timeouts' do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(true)
-      ar_connection.stubs(:execute).raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.').then.returns(true)
+      ar_connection.stubs(:execute).returns([["dummy"]], [["dummy"]], [["dummy"]])
+                   .then
+                   .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
+                   .then
+                   .returns([["dummy"]]) # Matches initial host -> triggers retry
 
       connection = Lhm::Connection.new(connection: ar_connection)
 
-      switcher = Lhm::AtomicSwitcher.new(@migration, connection, retriable: {base_interval: 0})
+
+      switcher = Lhm::AtomicSwitcher.new(@migration, connection, retriable: { tries: 3, base_interval: 0 })
 
       assert switcher.run
 
@@ -50,11 +55,21 @@ describe Lhm::AtomicSwitcher do
     it 'should give up on lock wait timeouts after a configured number of tries' do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(true)
-      ar_connection.stubs(:execute).twice.raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
+      ar_connection.stubs(:execute).returns([["dummy"]], [["dummy"]], [["dummy"]])
+                .then
+                .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
+                .then
+                .returns([["dummy"]]) # triggers retry 1
+                .then
+                .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
+                .then
+                .returns([["dummy"]]) # triggers retry 2
+                .then
+                .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.') # triggers retry 2
 
       connection = Lhm::Connection.new(connection: ar_connection)
 
-      switcher = Lhm::AtomicSwitcher.new(@migration, connection, retriable: {tries: 2, base_interval: 0})
+      switcher = Lhm::AtomicSwitcher.new(@migration, connection, retriable: { tries: 2, base_interval: 0 })
 
       assert_raises(ActiveRecord::StatementInvalid) { switcher.run }
     end
@@ -70,6 +85,7 @@ describe Lhm::AtomicSwitcher do
     it "should raise when destination doesn't exist" do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(false)
+      ar_connection.expects(:execute).twice
 
       connection = Lhm::Connection.new(connection: ar_connection)
 
