@@ -37,6 +37,8 @@ module Lhm
     end
 
     def execute
+      @start_time = Time.now
+      
       return if @chunk_finder.table_empty?
       @next_to_insert = @start
       while @next_to_insert <= @limit || (@start == @limit)
@@ -47,6 +49,8 @@ module Lhm
         affected_rows = ChunkInsert.new(@migration, @connection, bottom, top, @options).insert_and_return_count_of_rows_created
         expected_rows = top - bottom + 1
 
+        rate_limited_log_progress
+
         if affected_rows < expected_rows
           raise_on_non_pk_duplicate_warning
         end
@@ -54,8 +58,10 @@ module Lhm
         if @throttler && affected_rows > 0
           @throttler.run
         end
-        @printer.notify(bottom, @limit)
+        
         @next_to_insert = top + 1
+        @printer.notify(bottom, @limit)
+
         break if @start == @limit
       end
       @printer.end
@@ -99,6 +105,15 @@ module Lhm
     def validate
       return if @chunk_finder.table_empty?
       @chunk_finder.validate
+    end
+
+    # Only log the chunker progress every 5 minutes instead of every iteration
+    def rate_limited_log_progress
+      current_time = Time.now
+      if current_time - @start_time > (5 * 60)
+        Lhm.logger.info("Inserted #{affected_rows} rows into the destination table from #{bottom} to #{top}")
+        @start_time = current_time
+      end 
     end
   end
 end

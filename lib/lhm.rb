@@ -114,21 +114,21 @@ module Lhm
       triggers.each do |trigger|
         connection.execute("drop trigger if exists #{trigger}")
       end
-      puts "Dropped triggers #{triggers.join(', ')}"
+      logger.info("Dropped triggers #{triggers.join(', ')}")
 
       tables.each do |table|
         connection.execute("drop table if exists #{table}")
       end
-      puts "Dropped tables #{triggers.join(', ')}"
+      logger.info("Dropped tables #{tables.join(', ')}")
 
       true
     elsif tables.empty? && triggers.empty?
-      puts 'Everything is clean. Nothing to do.'
+      logger.info('Everything is clean. Nothing to do.')
       true
     else
-      puts "Would drop LHM backup tables: #{tables.join(', ')}."
-      puts "Would drop LHM triggers: #{triggers.join(', ')}."
-      puts 'Run with Lhm.cleanup(true) to drop all LHM triggers and tables, or Lhm.cleanup_current_run(true, table_name) to clean up a specific LHM.'
+      logger.info("Would drop LHM backup tables: #{tables.join(', ')}.")
+      logger.info("Would drop LHM triggers: #{triggers.join(', ')}.")
+      logger.info('Run with Lhm.cleanup(true) to drop all LHM triggers and tables, or Lhm.cleanup_current_run(true, table_name) to clean up a specific LHM.')
       false
     end
   end

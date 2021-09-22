@@ -214,6 +214,8 @@ module Lhm
       replacement = %{CREATE TABLE `#{ @origin.destination_name }`}
       stmt = @origin.ddl.gsub(original, replacement)
       @connection.execute(tagged(stmt))
+
+      Lhm.logger.info("Created destination table #{@origin.destination_name}")
     end
 
     def destination_read

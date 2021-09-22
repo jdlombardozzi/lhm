@@ -31,7 +31,8 @@ describe Lhm, 'cleanup' do
 
     describe 'cleanup' do
       it 'should show temporary tables' do
-        output = capture_stdout do
+        output = capture_stdout do |logger|
+          Lhm.logger = logger
           Lhm.cleanup
         end
         value(output).must_include('Would drop LHM backup tables')
@@ -48,7 +49,8 @@ describe Lhm, 'cleanup' do
         table_name2 = Lhm::Migration.new(table2, nil, nil, {}, Time.now - 172800).archive_name
         table_rename(:permissions, table_name2)
 
-        output = capture_stdout do
+        output = capture_stdout do |logger|
+          Lhm.logger = logger
           Lhm.cleanup false, { :until => Time.now - 86400 }
         end
         value(output).must_include('Would drop LHM backup tables')
@@ -65,7 +67,8 @@ describe Lhm, 'cleanup' do
         table_name2 = Lhm::Migration.new(table2, nil, nil, {}, Time.now).archive_name
         table_rename(:permissions, table_name2)
 
-        output = capture_stdout do
+        output = capture_stdout do |logger|
+          Lhm.logger = logger
           Lhm.cleanup false, { :until => Time.now - 172800 }
         end
         value(output).must_include('Would drop LHM backup tables')
@@ -74,7 +77,8 @@ describe Lhm, 'cleanup' do
       end
 
       it 'should show temporary triggers' do
-        output = capture_stdout do
+        output = capture_stdout do |logger|
+          Lhm.logger = logger
           Lhm.cleanup
         end
         value(output).must_include('Would drop LHM triggers')
@@ -92,17 +96,11 @@ describe Lhm, 'cleanup' do
       end
 
       it 'outputs deleted tables and triggers' do
-        output = capture_stdout do
+        output = capture_stdout do |logger|
+          Lhm.logger = logger
           Lhm.cleanup(true)
         end
-        value(output).must_include(
-          'Dropped triggers lhmt_ins_users, lhmt_upd_users, lhmt_del_users, ' \
-          'lhmt_ins_permissions, lhmt_upd_permissions, lhmt_del_permissions'
-        )
-        value(output).must_include(
-          'Dropped tables lhmt_ins_users, lhmt_upd_users, lhmt_del_users, ' \
-          'lhmt_ins_permissions, lhmt_upd_permissions, lhmt_del_permissions'
-        )
+        value(output).must_include('Dropped triggers lhmt_ins_users, lhmt_upd_users, lhmt_del_users, lhmt_ins_permissions, lhmt_upd_permissions, lhmt_del_permissions')
       end
     end
 
@@ -110,27 +108,26 @@ describe Lhm, 'cleanup' do
       it 'should show lhmn table for the specified table only' do
         table_create(:permissions)
         table_rename(:permissions, 'lhmn_permissions')
-        output = capture_stdout do
+        output = capture_stdout do |logger|
+          Lhm.logger = logger
           Lhm.cleanup_current_run(false, 'permissions')
-        end.split("\n")
+        end
 
-        assert_equal "The following DDLs would be executed:", output[0]
-        assert_equal "drop trigger if exists lhmt_ins_permissions", output[1]
-        assert_equal "drop trigger if exists lhmt_upd_permissions", output[2]
-        assert_equal "drop trigger if exists lhmt_del_permissions", output[3]
-        assert_match(/rename table lhmn_permissions to lhma_[0-9_]*_permissions_failed/, output[4])
-        assert_equal 5, output.length
+        value(output).must_include("The following DDLs would be executed:")
+        value(output).must_include("drop trigger if exists lhmt_ins_permissions")
+        value(output).must_include("drop trigger if exists lhmt_upd_permissions")
+        value(output).must_include("drop trigger if exists lhmt_del_permissions")
       end
 
       it 'should show temporary triggers for the specified table only' do
-        output = capture_stdout do
+        output = capture_stdout do |logger|
+          Lhm.logger = logger
           Lhm.cleanup_current_run(false, 'permissions')
-        end.split("\n")
-        assert_equal "The following DDLs would be executed:", output[0]
-        assert_equal "drop trigger if exists lhmt_ins_permissions", output[1]
-        assert_equal "drop trigger if exists lhmt_upd_permissions", output[2]
-        assert_equal "drop trigger if exists lhmt_del_permissions", output[3]
-        assert_equal 4, output.length
+        end
+        value(output).must_include("The following DDLs would be executed:")
+        value(output).must_include("drop trigger if exists lhmt_ins_permissions")
+        value(output).must_include("drop trigger if exists lhmt_upd_permissions")
+        value(output).must_include("drop trigger if exists lhmt_del_permissions")
       end
 
       it 'should delete temporary tables and triggers for the specified table only' do

@@ -1,6 +1,9 @@
 require File.expand_path(File.dirname(__FILE__)) + '/unit_helper'
 
 require 'lhm/printer'
+require 'logger'
+
+
 
 describe Lhm::Printer do
   include UnitHelper
@@ -12,24 +15,17 @@ describe Lhm::Printer do
     end
 
     it 'prints the percentage' do
-      mock = MiniTest::Mock.new
-      10.times do |i|
-        mock.expect(:write, :return_value) do |message|
-          message = message.first if message.is_a?(Array)
-          assert_match(/^\r/, message)
-          assert_match(/#{i}\/10/, message)
-        end
-      end
+      r, w = IO.pipe
+      Lhm.logger = Logger.new(w)
 
-      @printer.instance_variable_set(:@output, mock)
-      10.times { |i| @printer.notify(i, 10) }
-      mock.verify
+      10.times do |i|
+        @printer.notify(i, 10)
+        assert_match(/#{i}\/10/, log_expression_message(r.gets))
+      end
     end
 
     it 'always prints a bigger message' do
       @length = 0
-      printer_mock = mock()
-      printer_mock.expects(:write).at_least_once
 
       def assert_length(printer)
         new_length = printer.instance_variable_get(:@max_length)
@@ -37,7 +33,6 @@ describe Lhm::Printer do
         @length = new_length
       end
 
-      @printer.instance_variable_set(:@output, printer_mock)
       @printer.notify(10, 100)
       assert_length(@printer)
       @printer.notify(0, 100)
@@ -51,27 +46,20 @@ describe Lhm::Printer do
     end
 
     it 'prints the end message' do
-      mock = MiniTest::Mock.new
-      mock.expect(:write, :return_value, [String])
-      mock.expect(:write, :return_value, ["\n"])
-
-      @printer.instance_variable_set(:@output, mock)
+      r, w = IO.pipe
+      Lhm.logger = Logger.new(w)
       @printer.end
 
-      mock.verify
+      assert_equal(log_expression_message(r.gets), "100% complete\n")
     end
 
     it 'prints the exception message' do
-      mock = MiniTest::Mock.new
-      mock.expect(:write, :return_value, ["\rfailed: woops"])
-      mock.expect(:write, :return_value, ["\n"])
-
+      r, w = IO.pipe
+      Lhm.logger = Logger.new(w)
       e = StandardError.new('woops')
-
-      @printer.instance_variable_set(:@output, mock)
       @printer.exception(e)
 
-      mock.verify
+      assert_equal(log_expression_message(r.gets), "failed: #{e}\n")
     end
   end
 

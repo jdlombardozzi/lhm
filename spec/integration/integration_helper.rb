@@ -3,6 +3,7 @@
 require 'test_helper'
 require 'yaml'
 require 'active_support'
+require 'logger'
 
 begin
   $db_config = YAML.load_file(File.expand_path(File.dirname(__FILE__)) + '/database.yml')
@@ -212,7 +213,8 @@ module IntegrationHelper
   def capture_stdout
     out = StringIO.new
     $stdout = out
-    yield
+    logger = Logger.new($stdout)
+    yield logger
     return out.string
   ensure
     $stdout = ::STDOUT
