@@ -1,3 +1,7 @@
+# 3.4.1 (Sep 22, 2021)
+
+* Add better logging to the LHM components (https://github.com/Shopify/lhm/pull/108)
+
 # 3.4.0 (Jul 19, 2021)
 
 * Log or raise on unexpected duplicated entry warnings during INSERT IGNORE (https://github.com/Shopify/lhm/pull/100)
