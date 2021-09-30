@@ -1,0 +1,43 @@
+services:
+#  Writer
+  mysql-1:
+    container_name: mysql-1
+    image: mysql:5.7.18
+    hostname: 'mysql-1'
+    volumes:
+      - ./scripts/mysql/writer:/docker-entrypoint-initdb.d
+      - ./scripts/mysql/writer:/etc/mysql/conf.d
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      SERVER_ID: 1
+      MYSQL_HOST: mysql-1
+    ports:
+      - "33006:3306"
+#  Reader
+  mysql-2:
+    container_name: mysql-2
+    image: mysql:5.7.18
+    hostname: 'mysql-2'
+    volumes:
+      - ./scripts/mysql/reader:/docker-entrypoint-initdb.d
+      - ./scripts/mysql/reader:/etc/mysql/conf.d
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      SERVER_ID: 2
+      MYSQL_HOST: mysql-2
+    ports:
+      - "33007:3306"
+    depends_on:
+      - mysql-1
+#  Proxysql
+  proxysql:
+    container_name: proxysql
+    image: proxysql/proxysql
+    volumes:
+      - ./scripts/proxysql/proxysql.cnf:/etc/proxysql.cnf
+    command: "proxysql -c /etc/proxysql.cnf -f --idle-threads"
+    ports:
+      - "33005:3306"
+    depends_on:
+      - mysql-1
+      - mysql-2

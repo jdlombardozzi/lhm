@@ -1,0 +1,10 @@
+STOP SLAVE;
+CHANGE MASTER TO
+MASTER_HOST='mysql-1',
+MASTER_AUTO_POSITION=1,
+MASTER_USER='replication',
+MASTER_PASSWORD='password';
+
+start slave;
+
+SET GLOBAL read_only = ON;

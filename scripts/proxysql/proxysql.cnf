@@ -1,0 +1,101 @@
+#file proxysql.cfg
+
+datadir="/var/lib/proxysql"
+
+admin_variables=
+{
+  mysql_ifaces="0.0.0.0:6032"
+  admin_credentials="admin:password;remote-admin:password"
+}
+
+mysql_servers =
+(
+  {
+    address="mysql-1"
+    port=3306
+    hostgroup=0
+    max_connections=200
+  },
+  {
+    address="mysql-2"
+    port=3306
+    hostgroup=1
+    max_connections=200
+  }
+)
+
+mysql_variables=
+{
+  threads=8
+  max_connections=100000
+  interfaces="0.0.0.0:3306"
+  server_version="5.7.18-proxysql"
+  connect_timeout_server=25000
+  connect_timeout_server_max=25000
+  default_charset="utf8mb4"
+  free_connections_pct=100
+  connection_warming=true
+  max_allowed_packet=16777216
+  monitor_enabled=false
+  query_retries_on_failure=0
+  shun_on_failures=999999
+  shun_recovery_time_sec=0
+  throttle_connections_per_sec_to_hostgroup=30
+}
+
+# defines all the MySQL users
+mysql_users:
+(
+  {
+    username = "root"
+    password = "password"
+    default_hostgroup = 0
+    max_connections=1000
+    active = 1
+  },
+  {
+    username = "writer"
+    password = "password"
+    default_hostgroup = 0
+    max_connections=50000
+    active = 1
+    transaction_persistent=1
+  },
+  {
+    username = "reader"
+    password = "password"
+    default_hostgroup = 1
+    max_connections=50000
+    active = 1
+    transaction_persistent=1
+  }
+)
+
+#defines MySQL Query Rules
+mysql_query_rules:
+(
+  {
+      rule_id = 1
+      active = 1
+      match_digest = "@@SESSION"
+      multiplex = 2
+    },
+    {
+      rule_id = 2
+      active = 1
+      match_digest = "@@global\.server_id"
+      multiplex = 2
+    },
+    {
+      rule_id = 3
+      active = 1
+      match_digest = "@@global\.hostname"
+      multiplex = 2
+    },
+    {
+      rule_id = 4
+      active = 1
+      match_pattern = "maintenance:lhm"
+      destination_hostgroup = 0
+    }
+)

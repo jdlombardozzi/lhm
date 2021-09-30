@@ -7,14 +7,17 @@ up:
       - wget
   - ruby: 2.6.5
   - bundler
+  - docker
   - custom:
-      name: Database
-      met?: test -f spec/integration/database.yml && test "$(./dbdeployer/sandboxes/rsandbox_5_7_22/status_all | grep on\  | wc -l | xargs echo)" = "2"
-      meet: ./dbdeployer/install.sh
-      down: ./dbdeployer/sandboxes/rsandbox_5_7_22/stop_all
+      name: Docker Compose
+      met?: docker-compose ls | grep -ioE -q "lhm.*running\(3\)"
+      meet: docker-compose up -d
 
 commands:
   unit: bundle exec rake unit
   int: bundle exec rake integration
   test: bundle exec rake unit && bundle exec rake integration
   cov: rm -rf coverage; COV=1 bundle exec rake unit && bundle exec rake integration; open coverage/index.html
+  logs:
+    desc: "See the DB logs (ctrl-c + ctrl-c to exit)"
+    run: docker-compose logs -f
