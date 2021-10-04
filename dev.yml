@@ -10,8 +10,8 @@ up:
   - docker
   - custom:
       name: Docker Compose
-      met?: docker-compose ls | grep -ioE -q "lhm.*running\(3\)"
-      meet: docker-compose up -d
+      met?: docker compose ls | grep -ioE -q "lhm.*running\(3\)"
+      meet: docker compose up -d
 
 commands:
   unit: bundle exec rake unit

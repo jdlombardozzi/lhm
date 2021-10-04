@@ -1,6 +1,10 @@
 #file proxysql.cfg
 
 datadir="/var/lib/proxysql"
+restart_on_missing_heartbeats=999999
+query_parser_token_delimiters=","
+query_parser_key_value_delimiters=":"
+unit_of_work_identifiers="consistent_read_id"
 
 admin_variables=
 {
@@ -26,21 +30,34 @@ mysql_servers =
 
 mysql_variables=
 {
-  threads=8
-  max_connections=100000
-  interfaces="0.0.0.0:3306"
-  server_version="5.7.18-proxysql"
-  connect_timeout_server=25000
-  connect_timeout_server_max=25000
-  default_charset="utf8mb4"
-  free_connections_pct=100
-  connection_warming=true
-  max_allowed_packet=16777216
-  monitor_enabled=false
-  query_retries_on_failure=0
-  shun_on_failures=999999
-  shun_recovery_time_sec=0
-  throttle_connections_per_sec_to_hostgroup=30
+  session_idle_ms=1
+    auto_increment_delay_multiplex=0
+
+    threads=8
+    max_connections=100000
+    interfaces="0.0.0.0:3306"
+    server_version="5.7.18-proxysql"
+    connect_timeout_server=10000
+    connect_timeout_server_max=10000
+    connect_retries_on_failure=0
+    default_charset="utf8mb4"
+    free_connections_pct=100
+    connection_warming=true
+    max_allowed_packet=16777216
+    monitor_enabled=false
+    query_retries_on_failure=0
+    shun_on_failures=999999
+    shun_recovery_time_sec=0
+    kill_backend_connection_when_disconnect=false
+    throttle_connections_per_sec_to_hostgroup=20
+    stats_time_backend_query=false
+    stats_time_query_processor=false
+    max_stmts_per_connection=5
+    default_max_latency_ms=999999
+    wait_timeout=1800000
+    eventslog_format=3
+    log_multiplexing_disabled=true
+    log_unhealthy_connections=false
 }
 
 # defines all the MySQL users

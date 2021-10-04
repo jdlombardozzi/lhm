@@ -259,13 +259,6 @@ COV=1 bundle exec rake unit && bundle exec rake integration
 open coverage/index.html
 ```
 
-### dbdeployer [DEPRECATED]
-*Note: dbeployer has been removed from this project. Please view the subsequent section about docker-compose*
-
-~~The integration tests rely on a replicated configuration for MySQL. We're using 
-[`dbdeployer`](https://github.com/datacharmer/dbdeployer) to manage the test nodes
-required to set up these configurations.~~
-
 ### Docker Compose
 The integration tests rely on a replication configuration for MySQL which is being proxied by an instance of ProxySQL.
 It is important that every container is running to execute the integration test suite.

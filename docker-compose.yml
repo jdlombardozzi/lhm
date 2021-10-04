@@ -2,28 +2,54 @@ services:
 #  Writer
   mysql-1:
     container_name: mysql-1
-    image: mysql:5.7.18
+    image: percona:5.7
+    command:
+      --server-id=1
+      --log-bin=mysql-bin
+      --max-binlog-size=4096
+      --binlog-format=ROW
+      --binlog_row_image=minimal
+      --sync-binlog=1
+      --log-slave-updates=ON
+      --gtid-mode=ON
+      --enforce-gtid-consistency=ON
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max-connections=1000
+      --read-only=OFF
+      --binlog-rows-query-log-events=ON
     hostname: 'mysql-1'
     volumes:
       - ./scripts/mysql/writer:/docker-entrypoint-initdb.d
-      - ./scripts/mysql/writer:/etc/mysql/conf.d
     environment:
       MYSQL_ROOT_PASSWORD: password
-      SERVER_ID: 1
       MYSQL_HOST: mysql-1
     ports:
       - "33006:3306"
 #  Reader
   mysql-2:
     container_name: mysql-2
-    image: mysql:5.7.18
+    image: percona:5.7
+    command:
+      --server-id=2
+      --log-bin=mysql-bin
+      --max-binlog-size=4096
+      --binlog-format=ROW
+      --binlog_row_image=minimal
+      --sync-binlog=1
+      --log-slave-updates=ON
+      --gtid-mode=ON
+      --enforce-gtid-consistency=ON
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max-connections=1000
+      --read-only=ON
+      --binlog-rows-query-log-events=ON
     hostname: 'mysql-2'
     volumes:
       - ./scripts/mysql/reader:/docker-entrypoint-initdb.d
-      - ./scripts/mysql/reader:/etc/mysql/conf.d
     environment:
       MYSQL_ROOT_PASSWORD: password
-      SERVER_ID: 2
       MYSQL_HOST: mysql-2
     ports:
       - "33007:3306"
@@ -32,7 +58,7 @@ services:
 #  Proxysql
   proxysql:
     container_name: proxysql
-    image: proxysql/proxysql
+    image: proxysql/proxysql:2.0.11
     volumes:
       - ./scripts/proxysql/proxysql.cnf:/etc/proxysql.cnf
     command: "proxysql -c /etc/proxysql.cnf -f --idle-threads"

@@ -22,12 +22,10 @@ jobs:
       - name: Install Ubuntu packages
         run: sudo apt-get update && sudo apt-get install numactl libaio-dev libmysqlclient-dev
       - name: Setup MySQL and ProxySQL (docker-compose)
-        run: docker-compose up -d
+        run: docker compose up -d
       - name: Wait until DBs are alive
-        run: ./scripts/ci/wait-for-db.sh
+        run: ./scripts/ci/wait-for-proxysql.sh
         timeout-minutes: 2
-      - name: Create test DB
-        run: mysql -uroot -ppassword -P33005 -e "CREATE DATABASE test;"
       - name: Run integration tests
         run: bundle exec rake integration
       - name: Run unit tests
