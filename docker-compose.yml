@@ -35,8 +35,6 @@ services:
       MYSQL_HOST: mysql-2
     ports:
       - "33007:3306"
-    depends_on:
-      - mysql-1
 #  Proxysql
   proxysql:
     container_name: proxysql
@@ -46,6 +44,3 @@ services:
     command: "proxysql -c /etc/proxysql.cnf -f --idle-threads"
     ports:
       - "33005:3306"
-    depends_on:
-      - mysql-1
-      - mysql-2

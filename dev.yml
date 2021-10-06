@@ -12,6 +12,10 @@ up:
       name: Docker Compose
       met?: docker compose ls | grep -ioE -q "lhm.*running\(3\)"
       meet: docker compose up -d
+  - custom:
+      name: Waiting for DBs to be operational
+      met?: ./scripts/helpers/wait-for-dbs.sh
+      meet: ":"
 
 commands:
   unit: bundle exec rake unit
