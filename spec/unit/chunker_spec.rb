@@ -34,7 +34,6 @@ describe Lhm::Chunker do
 
   describe '#run' do
 
-    # TODO FIX
     it 'detects the max id to use in the chunk using the stride and use it if it is lower than the limit' do
       def @throttler.stride
         5
@@ -49,7 +48,6 @@ describe Lhm::Chunker do
       @chunker.run
     end
 
-    # TODO FIX
     it 'chunks the result set according to the stride size' do
       def @throttler.stride
         2
@@ -70,7 +68,6 @@ describe Lhm::Chunker do
       @chunker.run
     end
 
-    # TODO FIX
     it 'handles stride changes during execution' do
       # roll our own stubbing
       def @throttler.stride
@@ -98,7 +95,6 @@ describe Lhm::Chunker do
       @chunker.run
     end
 
-    # TODO fix
     it 'correctly copies single record tables' do
       @chunker = Lhm::Chunker.new(@migration, @connection, :throttler => @throttler,
                                                            :start     => 1,
@@ -110,7 +106,6 @@ describe Lhm::Chunker do
       @chunker.run
     end
 
-    #TODO FIX
     it 'copies the last record of a table, even it is the start of the last chunk' do
       @chunker = Lhm::Chunker.new(@migration, @connection, :throttler => @throttler,
                                                            :start     => 2,
@@ -134,7 +129,6 @@ describe Lhm::Chunker do
       @chunker.run
     end
 
-    # TODO FIX
     it 'separates filter conditions from chunking conditions' do
       @chunker = Lhm::Chunker.new(@migration, @connection, :throttler => @throttler,
                                                            :start     => 1,
@@ -154,7 +148,6 @@ describe Lhm::Chunker do
       @chunker.run
     end
 
-    # TODO fix
     it "doesn't mess with inner join filters" do
       @chunker = Lhm::Chunker.new(@migration, @connection, :throttler => @throttler,
                                                            :start     => 1,
