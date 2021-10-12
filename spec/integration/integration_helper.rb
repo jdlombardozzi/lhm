@@ -41,7 +41,6 @@ module IntegrationHelper
       $db_config['master']['port'],
       $db_config['master']['user'],
       $db_config['master']['password'],
-      $db_config['master']['socket']
     )
   end
 
@@ -51,12 +50,11 @@ module IntegrationHelper
       $db_config['slave']['port'],
       $db_config['slave']['user'],
       $db_config['slave']['password'],
-      $db_config['slave']['socket']
     )
   end
 
-  def connect!(hostname, port, user, password, socket)
-    adapter = ar_conn(hostname, port, user, password, socket)
+  def connect!(hostname, port, user, password)
+    adapter = ar_conn(hostname, port, user, password)
     Lhm.setup(adapter)
     unless defined?(@@cleaned_up)
       Lhm.cleanup(true)
@@ -65,14 +63,13 @@ module IntegrationHelper
     @connection = adapter
   end
 
-  def ar_conn(host, port, user, password, socket)
+  def ar_conn(host, port, user, password)
     ActiveRecord::Base.establish_connection(
       :adapter  => 'mysql2',
       :host     => host,
       :username => user,
       :port     => port,
       :password => password,
-      :socket   => socket,
       :database => $db_name
     )
     ActiveRecord::Base.connection

@@ -16,6 +16,16 @@ Rake::TestTask.new('integration') do |t|
   t.libs << 'spec'
   t.test_files = FileList['spec/integration/**/*_spec.rb']
   t.verbose = true
+  end
+
+Rake::TestTask.new('dev') do |t|
+  t.libs << 'lib'
+  t.libs << 'spec'
+  t.test_files = FileList[
+    'spec/test_helper.rb',
+  #  Add file to test individually
+  ]
+  t.verbose = true
 end
 
 task :specs => [:unit, :integration]

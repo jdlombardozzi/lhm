@@ -6,7 +6,6 @@ pkg/*
 .ruby-version
 .ruby-gemset
 bin/rake
-spec/integration/database.yml
 gemfiles/vendor
 omg.ponies
 *~

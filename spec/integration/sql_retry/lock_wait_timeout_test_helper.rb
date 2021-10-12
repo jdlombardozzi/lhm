@@ -77,14 +77,17 @@ class LockWaitTimeoutTestHelper
   attr_reader :main_conn, :lock_duration, :innodb_lock_wait_timeout
 
   def new_mysql_connection
-    Mysql2::Client.new(
+    client = Mysql2::Client.new(
       host: '127.0.0.1',
-      database: test_db_name,
       username: db_config['master']['user'],
       password: db_config['master']['password'],
-      port: db_config['master']['port'],
-      socket: db_config['master']['socket']
+      port: db_config['master']['port']
     )
+
+    # For some reasons sometimes the database does not exist
+    client.query("CREATE DATABASE IF NOT EXISTS #{test_db_name}")
+    client.select_db(test_db_name)
+    client
   end
 
   def test_db_name
