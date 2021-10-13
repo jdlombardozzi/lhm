@@ -40,10 +40,15 @@ module Lhm
         if @with_consistent_host
           raise Lhm::Error.new("Could not reconnected to initial MySQL host. Aborting to avoid data-loss") unless same_host_as_initial?
         end
+        # The time check will log a warning if an action takes more than 5s (there's a possibility a
+        # failover might've happened after the hostname check above)
         with_time_check do
           yield(@connection)
         end
       rescue Lhm::Error
+        # Since Lhm::Error < StandardError, it is important to separate the flows, otherwise every
+        # error would trigger a reconnect. In this case, some instances of Lhm::Error are raised in a controlled manner
+        # to trigger retries from ` Retriable.retriable`
         raise
       rescue StandardError => e
         raise e unless error_can_trigger_reconnect?(e)
@@ -76,7 +81,7 @@ module Lhm
     end
 
     def server_id
-      # Context Should be defined by library caller
+      # This should only be used with CloudSQLs as their hosts are "localhost", but the "server_id" is different
       @connection&.execute("SELECT @@global.server_id").to_a.first.tap do |record|
         return record&.first
       end
@@ -91,10 +96,12 @@ module Lhm
       log_with_prefix("Lost connection to MySQL, will retry to connect to same host")
       begin
         Retriable.retriable(@host_retry_config) do
+          # tries to reconnect. On failure will trigger a retry
           @connection.reconnect!
           new_host = hostname
           if new_host == @initial_host
-            # This is not an actual error, but it needs to trigger the Retriable from #with_retries to execuste the desired logic again
+            # This is not an actual error, but it needs to trigger the Retriable
+            # from #with_retries to execute the desired logic again
             raise Lhm::Error.new("LHM successfully reconnected to initial host: #{@initial_host}")
           else
             # New Master --> abort LHM (reconnecting will not change anything)
@@ -102,7 +109,12 @@ module Lhm
           end
         end
       rescue StandardError => e
+        # The parent Retriable.retriable is configured to retry if it encounters an error with the success message.
+        # Therefore, if the connection is re-established successfully AND the host is the same, LHM can retry the query
+        # that originally failed.
         raise e if reconnect_successful?(e)
+        # If the connection was not successful, the parent retriable will raise "unregistered" errors.
+        # Therefore, this error will cause the LHM to abort
         raise Lhm::Error.new("LHM tried the reconnection procedure but failed. Latest error: #{e.message}")
       end
     end
