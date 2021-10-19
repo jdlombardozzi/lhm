@@ -38,7 +38,7 @@ describe Lhm::AtomicSwitcher do
                    .then
                    .returns([["dummy"]]) # Matches initial host -> triggers retry
 
-      connection = Lhm::Connection.new(connection: ar_connection)
+      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
 
 
       switcher = Lhm::AtomicSwitcher.new(@migration, connection, retriable: { tries: 3, base_interval: 0 })
@@ -67,7 +67,7 @@ describe Lhm::AtomicSwitcher do
                 .then
                 .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.') # triggers retry 2
 
-      connection = Lhm::Connection.new(connection: ar_connection)
+      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
 
       switcher = Lhm::AtomicSwitcher.new(@migration, connection, retriable: { tries: 2, base_interval: 0 })
 
@@ -85,7 +85,6 @@ describe Lhm::AtomicSwitcher do
     it "should raise when destination doesn't exist" do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(false)
-      ar_connection.expects(:execute).twice
 
       connection = Lhm::Connection.new(connection: ar_connection)
 

@@ -1,4 +1,5 @@
 require 'delegate'
+require 'lhm/sql_retry'
 
 module Lhm
   class Connection < SimpleDelegator
@@ -8,12 +9,13 @@ module Lhm
     alias connection __getobj__
     alias connection= __setobj__
 
-    def initialize(connection:, default_log_prefix: nil, retry_options: {})
+    def initialize(connection:, default_log_prefix: nil, options: {}, retry_config: {})
       @default_log_prefix = default_log_prefix
-      @retry_options = retry_options || default_retry_config
+      @retry_options = retry_config || default_retry_config
       @sql_retry = Lhm::SqlRetry.new(
         connection,
-        retry_options,
+        retry_config,
+        options[:reconnect_with_consistent_host] || false
       )
 
       # Creates delegation for the ActiveRecord Connection
@@ -37,7 +39,7 @@ module Lhm
     def exec_with_retries(method, sql, retry_options = {})
       retry_options[:log_prefix] ||= file
       @sql_retry.with_retries(retry_options) do |conn|
-        conn.public_send(method, sql)
+        conn.public_send(method, Lhm::ProxySQLHelper.tagged(sql))
       end
     end
 

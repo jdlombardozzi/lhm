@@ -20,12 +20,7 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
     @connection = DBConnectionHelper::new_mysql_connection(:proxysql, true, true)
 
     @lhm_retry = Lhm::SqlRetry.new(@connection, {},
-                                   true,
-                                   { base_interval: 0.5, # first retry after 200ms
-                                     multiplier: 1, # subsequent retries wait 1x longer than first retry (no change)
-                                     tries: 6, # we only need 3 tries (including the first) for the scenario described below
-                                     rand_factor: 0 # do not introduce randomness to wait timer
-                                   })
+                                   true)
   end
 
   after(:each) do
@@ -61,21 +56,16 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
     logs = @logger.string.split("\n")
 
     assert logs.first.include?("Lost connection to MySQL, will retry to connect to same host")
-    assert logs.last.include?("LHM successfully reconnected to initial host: mysql-1 -- triggering retry")
+    assert logs.last.include?("LHM successfully reconnected to initial host")
   end
 
   it "Will abort if new writer is not same host" do
     # The hostname will be constant before the blip
-    Lhm::SqlRetry.any_instance.stubs(:hostname).returns("mysql-1", "mysql-1").then.returns("mysql-2")
+    Lhm::SqlRetry.any_instance.stubs(:hostname).returns("mysql-1").then.returns("mysql-2")
 
     # Need new instance for stub to take into effect
     lhm_retry = Lhm::SqlRetry.new(@connection, {},
-                                  true,
-                                  { base_interval: 0.5, # first retry after 200ms
-                                    multiplier: 1, # subsequent retries wait 1x longer than first retry (no change)
-                                    tries: 10, # we only need 3 tries (including the first) for the scenario described below
-                                    rand_factor: 0 # do not introduce randomness to wait timer
-                                  })
+                                  true)
 
     e = assert_raises Lhm::Error do
       #Creating a network blip

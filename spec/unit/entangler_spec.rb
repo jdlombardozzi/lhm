@@ -68,7 +68,7 @@ describe Lhm::Entangler do
                        .then
                        .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')
 
-      connection = Lhm::Connection.new(connection: ar_connection)
+      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
 
       @entangler = Lhm::Entangler.new(@migration, connection, retriable: {base_interval: 0, tries: tries})
 
@@ -81,7 +81,7 @@ describe Lhm::Entangler do
                    .returns([["dummy"]], [["dummy"]], [["dummy"]])
                    .then
                    .raises(Mysql2::Error, 'The MySQL server is running with the --read-only option so it cannot execute this statement.')
-      connection = Lhm::Connection.new(connection: ar_connection)
+      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
 
       @entangler = Lhm::Entangler.new(@migration, connection, retriable: { base_interval: 0 })
       assert_raises(Mysql2::Error) { @entangler.before }
@@ -96,7 +96,7 @@ describe Lhm::Entangler do
                    .then
                    .returns([["dummy"]])
 
-      connection = Lhm::Connection.new(connection: ar_connection)
+      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
 
       @entangler = Lhm::Entangler.new(@migration, connection, retriable: {base_interval: 0})
 
@@ -122,7 +122,7 @@ describe Lhm::Entangler do
                    .then
                    .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')  # final error
 
-      connection = Lhm::Connection.new(connection: ar_connection)
+      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
 
       @entangler = Lhm::Entangler.new(@migration, connection, retriable: {tries: 5, base_interval: 0})
 

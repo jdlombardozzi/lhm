@@ -1,4 +1,5 @@
 require 'lhm/connection'
+require 'lhm/proxysql_helper'
 
 describe Lhm::Connection do
 
@@ -64,5 +65,17 @@ describe Lhm::Connection do
     log_messages = @logs.string.split("\n")
     assert_equal val, "dummy"
     assert_equal(2, log_messages.length)
+  end
+
+  it "Queries should be tagged with ProxySQL tag if requested" do
+    ar_connection = mock()
+    ar_connection.expects(:public_send).with(:select_value, "#{Lhm::ProxySQLHelper::ANNOTATION}SHOW TABLES").returns("dummy")
+    ar_connection.stubs(:execute).times(4).returns([["dummy"]])
+
+    connection = Lhm::Connection.new(connection: ar_connection, options: { reconnect_with_consistent_host: true })
+
+    val = connection.select_value("SHOW TABLES", { base_interval: 0, tries: 3 })
+
+    assert_equal val, "dummy"
   end
 end

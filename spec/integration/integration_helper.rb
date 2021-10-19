@@ -41,7 +41,7 @@ module IntegrationHelper
       $db_config['proxysql']['port'],
       $db_config['proxysql']['user'],
       $db_config['proxysql']['password'],
-      )
+    )
   end
 
   def connect_master!
@@ -62,22 +62,31 @@ module IntegrationHelper
     )
   end
 
-  def connect!(hostname, port, user, password)
-    adapter = Lhm::Connection.new(connection: ar_conn(hostname, port, user, password))
+  def connect_master_toxic!(with_retry=false)
+    connect!(
+      '127.0.0.1',
+      $db_config['master_toxic']['port'],
+      $db_config['master_toxic']['user'],
+      $db_config['master_toxic']['password'],
+    )
+  end
+
+  def connect!(hostname, port, user, password, with_retry = false)
+    adapter = Lhm::Connection.new(connection: ar_conn(hostname, port, user, password), options: {reconnect_with_consistent_host: with_retry})
     Lhm.setup(adapter)
     unless defined?(@@cleaned_up)
       Lhm.cleanup(true)
-      @@cleaned_up  = true
+      @@cleaned_up = true
     end
     @connection = adapter
   end
 
   def ar_conn(host, port, user, password)
     ActiveRecord::Base.establish_connection(
-      :adapter  => 'mysql2',
-      :host     => host,
+      :adapter => 'mysql2',
+      :host => host,
       :username => user,
-      :port     => port,
+      :port => port,
       :password => password,
       :database => $db_name
     )
@@ -164,7 +173,7 @@ module IntegrationHelper
     connection.data_source_exists?(table.name)
   end
 
-  def new_mysql_connection(role='master')
+  def new_mysql_connection(role = 'master')
     Mysql2::Client.new(
       host: '127.0.0.1',
       database: $db_name,
@@ -202,7 +211,7 @@ module IntegrationHelper
       show indexes in `#{ table_name }`
      where key_name = '#{ key_name }'
        and non_unique = #{ non_unique }
-    >)
+                 >)
   end
 
   #
@@ -230,6 +239,7 @@ module IntegrationHelper
   def simulate_failed_migration
     Lhm::Entangler.class_eval do
       alias_method :old_after, :after
+
       def after
         true
       end

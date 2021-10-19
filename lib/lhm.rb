@@ -8,6 +8,7 @@ require 'lhm/throttler'
 require 'lhm/version'
 require 'lhm/cleanup/current'
 require 'lhm/sql_retry'
+require 'lhm/proxysql_helper'
 require 'lhm/connection'
 require 'lhm/test_support'
 require 'lhm/railtie' if defined?(Rails::Railtie)
@@ -82,15 +83,26 @@ module Lhm
     Lhm::Cleanup::Current.new(run, table_name, connection, options).execute
   end
 
-  def setup(connection)
-    @@connection = Lhm::Connection.new(connection: connection)
+  # Setups DB connection
+  #
+  # @param [ActiveRecord::Base] connection ActiveRecord Connection
+  # @param [Hash] connection_options Optional options (defaults to: empty hash)
+  # @option options [Boolean] :reconnect_with_consistent_host
+  #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
+  def setup(connection, connection_options = {})
+    @@connection = Lhm::Connection.new(connection: connection, options: connection_options)
   end
 
-  def connection
+  # Setups DB connection
+  #
+  # @param [Hash] connection_options Optional options (defaults to: empty hash)
+  # @option options [Boolean] :reconnect_with_consistent_host
+  #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
+  def connection(connection_options = {})
     @@connection ||=
       begin
         raise 'Please call Lhm.setup' unless defined?(ActiveRecord)
-        ActiveRecord::Base.connection
+        Lhm::Connection.new(connection: ActiveRecord::Base.connection, options: connection_options)
       end
   end
 

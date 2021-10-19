@@ -4,11 +4,13 @@
 require File.expand_path(File.dirname(__FILE__)) + '/unit_helper'
 
 require 'lhm/chunk_insert'
+require 'lhm/connection'
 
 describe Lhm::ChunkInsert do
   before(:each) do
-    @connection = mock()
-    @connection.stubs(:execute).returns([["dummy"]])
+    ar_connection = mock()
+    ar_connection.stubs(:execute).returns([["dummy"]])
+    @connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: false})
     @origin = Lhm::Table.new('foo')
     @destination = Lhm::Table.new('bar')
   end
@@ -17,12 +19,11 @@ describe Lhm::ChunkInsert do
     describe "when migration has no conditions" do
       before do
         @migration = Lhm::Migration.new(@origin, @destination)
-        @sql_retry = Lhm::SqlRetry.new(@connection)
       end
 
       it "uses a simple where clause" do
         assert_equal(
-          Lhm::ChunkInsert.new(@migration, @sql_retry, 1, 2).sql,
+          Lhm::ChunkInsert.new(@migration, @connection, 1, 2).sql,
           "insert ignore into `bar` () select  from `foo` where `foo`.`id` between 1 and 2"
         )
       end
@@ -39,7 +40,7 @@ describe Lhm::ChunkInsert do
 
       it "combines the clause with the chunking WHERE condition" do
         assert_equal(
-          Lhm::ChunkInsert.new(@migration, @sql_retry, 1, 2).sql,
+          Lhm::ChunkInsert.new(@migration, @connection, 1, 2).sql,
           "insert ignore into `bar` () select  from `foo` where (foo.created_at > '2013-07-10' or foo.baz = 'quux') and `foo`.`id` between 1 and 2"
         )
       end
