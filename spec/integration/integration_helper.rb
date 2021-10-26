@@ -54,7 +54,7 @@ module IntegrationHelper
   end
 
   def connect!(hostname, port, user, password)
-    adapter = ar_conn(hostname, port, user, password)
+    adapter = Lhm::Connection.new(connection: ar_conn(hostname, port, user, password))
     Lhm.setup(adapter)
     unless defined?(@@cleaned_up)
       Lhm.cleanup(true)

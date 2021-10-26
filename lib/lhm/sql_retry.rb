@@ -17,19 +17,25 @@ module Lhm
   class SqlRetry
     def initialize(connection, options = {})
       @connection = connection
-      @log_prefix = options.delete(:log_prefix)
-      @retry_config = default_retry_config.dup.merge!(options)
+      @global_retry_config = default_retry_config.dup.merge!(options)
     end
 
-    def with_retries
-      Retriable.retriable(retry_config) do
+    def with_retries(retry_config = {})
+      @log_prefix = retry_config.delete(:log_prefix) || "SQL Retry"
+      cnf = @global_retry_config.dup.merge!(retry_config)
+      Retriable.retriable(cnf) do
         yield(@connection)
       end
     end
 
-    attr_reader :retry_config
+    attr_reader :global_retry_config
 
     private
+
+    def log_with_prefix(message, level = :info)
+      message.prepend("[#{@log_prefix}] ") if @log_prefix
+      Lhm.logger.send(level, message)
+    end
 
     # For a full list of configuration options see https://github.com/kamui/retriable
     def default_retry_config
@@ -52,8 +58,7 @@ module Lhm
         max_elapsed_time: Float::INFINITY, # max total time in seconds that code is allowed to keep being retried
         on_retry: Proc.new do |exception, try_number, total_elapsed_time, next_interval|
           log = "#{exception.class}: '#{exception.message}' - #{try_number} tries in #{total_elapsed_time} seconds and #{next_interval} seconds until the next try."
-          log.prepend("[#{@log_prefix}] ") if @log_prefix
-          Lhm.logger.info(log)
+          log_with_prefix(log, :info)
         end
       }.freeze
     end

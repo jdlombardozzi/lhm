@@ -4,17 +4,12 @@ require 'lhm/sql_retry'
 module Lhm
   module Cleanup
     class Current
-      def initialize(run, origin_table_name, connection, options = {})
+      def initialize(run, origin_table_name, connection, options={})
         @run = run
         @table_name = TableName.new(origin_table_name)
         @connection = connection
         @ddls = []
-        @retry_helper = SqlRetry.new(
-          @connection,
-          {
-            log_prefix: "Cleanup::Current"
-          }.merge!(options.fetch(:retriable, {}))
-        )
+        @retry_config = options[:retriable] || {}
       end
 
       attr_reader :run, :connection, :ddls
@@ -59,9 +54,7 @@ module Lhm
 
       def execute_ddls
         ddls.each do |ddl|
-          @retry_helper.with_retries do |retriable_connection|
-            retriable_connection.execute(ddl)
-          end
+            @connection.execute(ddl, @retry_config)
         end
         Lhm.logger.info("Dropped triggers on #{@lhm_triggers_for_origin.join(', ')}")
         Lhm.logger.info("Dropped tables #{@lhm_triggers_for_origin.join(', ')}")
