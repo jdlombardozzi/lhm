@@ -21,8 +21,8 @@ module Lhm
     end
 
     def with_retries(retry_config = {})
-      @log_prefix = retry_config.delete(:log_prefix) || "SQL Retry"
       cnf = @global_retry_config.dup.merge!(retry_config)
+      @log_prefix = cnf.delete(:log_prefix) || "SQL Retry"
       Retriable.retriable(cnf) do
         yield(@connection)
       end

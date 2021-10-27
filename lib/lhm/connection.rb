@@ -10,13 +10,13 @@ module Lhm
       # ASK: There's a loading issue with this class even though the MySQL2 adapter isa the one used. Would there be anyway to do this but cleaner?
       require 'active_record/connection_adapters/mysql2_adapter' unless defined?(ActiveRecord::ConnectionAdapters::Mysql2Adapter)
 
-      RETRIABLE_METHODS = [:update, :execute]
+      RETRIABLE_METHODS = [:update, :execute, :select_value]
       MODULES = [
         ActiveRecord::ConnectionAdapters::DatabaseStatements,
         ActiveRecord::ConnectionAdapters::SchemaStatements,
         ActiveRecord::ConnectionAdapters::Mysql2Adapter
       ]
-      methods = MODULES.flat_map(&:instance_methods).uniq - RETRIABLE_METHODS
+      methods = MODULES.flat_map(&:instance_methods).uniq - Object.instance_methods -  RETRIABLE_METHODS
 
       def_delegators :@connection, *methods
     end
@@ -39,6 +39,10 @@ module Lhm
       exec_with_retries(:update, query, retry_options)
     end
 
+    def select_value(query, retry_options = {})
+      exec_with_retries(:select_value, query, retry_options)
+    end
+
     private
 
     def exec_with_retries(method, sql, retry_options = {})
@@ -57,7 +61,7 @@ module Lhm
     end
 
     def relevant_caller
-      lhm_stack = caller.filter { |x| x.include?("/lhm") }
+      lhm_stack = caller.select { |x| x.include?("/lhm") }
 
       # Find the file that called the `#execute` (fallbacks to current file)
       lhm_stack.at(3) || lhm_stack.first
