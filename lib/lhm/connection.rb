@@ -1,25 +1,6 @@
-require 'forwardable'
-require 'active_record'
 
 module Lhm
   class Connection
-    extend Forwardable
-
-    # Defines methods to be forwarded to the ActiveRecord connection
-    begin
-      # ASK: There's a loading issue with this class even though the MySQL2 adapter isa the one used. Would there be anyway to do this but cleaner?
-      require 'active_record/connection_adapters/mysql2_adapter' unless defined?(ActiveRecord::ConnectionAdapters::Mysql2Adapter)
-
-      RETRIABLE_METHODS = [:update, :execute, :select_value]
-      MODULES = [
-        ActiveRecord::ConnectionAdapters::DatabaseStatements,
-        ActiveRecord::ConnectionAdapters::SchemaStatements,
-        ActiveRecord::ConnectionAdapters::Mysql2Adapter
-      ]
-      methods = MODULES.flat_map(&:instance_methods).uniq - Object.instance_methods -  RETRIABLE_METHODS
-
-      def_delegators :@connection, *methods
-    end
 
     def initialize(connection:, default_log_prefix: nil, retry_options: {})
       @default_log_prefix = default_log_prefix
@@ -43,6 +24,12 @@ module Lhm
       exec_with_retries(:select_value, query, retry_options)
     end
 
+    # Delegate ALL unknown method calls to ActiveRecord's connection.
+    # This ensures that there will be no breaking changes.
+    def method_missing(m, *args, &block)
+      @connection.public_send(m, *args, &block)
+    end
+
     private
 
     def exec_with_retries(method, sql, retry_options = {})
@@ -52,7 +39,7 @@ module Lhm
       end
     end
 
-    # returns humanized file of caller
+    # Returns camelized file name of caller (e.g. chunk_insert.rb -> ChunkInsert)
     def file
       # check order
       /[\/]*(\w+).rb:\d+:in/.match(relevant_caller)
