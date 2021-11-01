@@ -43,6 +43,7 @@ describe Lhm::AtomicSwitcher do
       log_messages = @logs.string.split("\n")
       assert_equal(2, log_messages.length)
       assert log_messages[0].include? "Starting run of class=Lhm::AtomicSwitcher"
+      # On failure of this assertion, check for Lhm::Connection#file
       assert log_messages[1].include? "[AtomicSwitcher] ActiveRecord::StatementInvalid: 'Lock wait timeout exceeded; try restarting transaction.' - 1 tries"
     end
 
