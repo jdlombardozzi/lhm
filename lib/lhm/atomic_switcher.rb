@@ -16,17 +16,12 @@ module Lhm
 
     attr_reader :connection
 
-    def initialize(migration, connection = nil, options = {})
+    def initialize(migration, connection = nil, options={})
       @migration = migration
       @connection = connection
       @origin = migration.origin
       @destination = migration.destination
-      @retry_helper = SqlRetry.new(
-        @connection,
-        {
-          log_prefix: "AtomicSwitcher"
-        }.merge!(options.fetch(:retriable, {}))
-      )
+      @retry_options = options[:retriable] || {}
     end
 
     def atomic_switch
@@ -36,7 +31,7 @@ module Lhm
 
     def validate
       unless @connection.data_source_exists?(@origin.name) &&
-             @connection.data_source_exists?(@destination.name)
+        @connection.data_source_exists?(@destination.name)
         error "`#{ @origin.name }` and `#{ @destination.name }` must exist"
       end
     end
@@ -44,9 +39,7 @@ module Lhm
     private
 
     def execute
-      @retry_helper.with_retries do |retriable_connection|
-        retriable_connection.execute atomic_switch
-      end
+      @connection.execute(atomic_switch, @retry_options)
     end
   end
 end

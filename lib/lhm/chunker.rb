@@ -28,11 +28,12 @@ module Lhm
       @start = @chunk_finder.start
       @limit = @chunk_finder.limit
       @printer = options[:printer] || Printer::Percentage.new
+      @retry_options = options[:retriable] || {}
       @retry_helper = SqlRetry.new(
         @connection,
         {
           log_prefix: "Chunker"
-        }.merge!(options.fetch(:retriable, {}))
+        }.merge!(@retry_options)
       )
     end
 
@@ -46,7 +47,7 @@ module Lhm
         top = upper_id(@next_to_insert, stride)
         verify_can_run
 
-        affected_rows = ChunkInsert.new(@migration, @connection, bottom, top, @options).insert_and_return_count_of_rows_created
+        affected_rows = ChunkInsert.new(@migration, @connection, bottom, top, @retry_options).insert_and_return_count_of_rows_created
         expected_rows = top - bottom + 1
 
         # Only log the chunker progress every 5 minutes instead of every iteration
@@ -78,7 +79,7 @@ module Lhm
     private
 
     def raise_on_non_pk_duplicate_warning
-      @connection.query("show warnings").each do |level, code, message|
+      @connection.execute("show warnings", @retry_options).each do |level, code, message|
         unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
           m = "Unexpected warning found for inserted row: #{message}"
           Lhm.logger.warn(m)
@@ -93,16 +94,14 @@ module Lhm
 
     def verify_can_run
       return unless @verifier
-      @retry_helper.with_retries do |retriable_connection|
+      @retry_helper.with_retries(@retry_options) do |retriable_connection|
         raise "Verification failed, aborting early" if !@verifier.call(retriable_connection)
       end
     end
 
     def upper_id(next_id, stride)
       sql = "select id from `#{ @migration.origin_name }` where id >= #{ next_id } order by id limit 1 offset #{ stride - 1}"
-      top = @retry_helper.with_retries do |retriable_connection|
-        retriable_connection.select_value(sql)
-      end
+      top = @connection.select_value(sql, @retry_options)
 
       [top ? top.to_i : @limit, @limit].min
     end

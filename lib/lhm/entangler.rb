@@ -4,6 +4,7 @@
 require 'lhm/command'
 require 'lhm/sql_helper'
 require 'lhm/sql_retry'
+require 'lhm/connection'
 
 module Lhm
   class Entangler
@@ -19,12 +20,7 @@ module Lhm
       @origin = migration.origin
       @destination = migration.destination
       @connection = connection
-      @retry_helper = SqlRetry.new(
-        @connection,
-        {
-          log_prefix: "Entangler"
-        }.merge!(options.fetch(:retriable, {}))
-      )
+      @retry_options = options[:retriable] || {}
     end
 
     def entangle
@@ -90,18 +86,14 @@ module Lhm
 
     def before
       entangle.each do |stmt|
-        @retry_helper.with_retries do |retriable_connection|
-          retriable_connection.execute(stmt)
-        end
+        @connection.execute(stmt, @retry_options)
       end
       Lhm.logger.info("Created triggers on #{@origin.name}")
     end
 
     def after
       untangle.each do |stmt|
-        @retry_helper.with_retries do |retriable_connection|
-          retriable_connection.execute(stmt)
-        end
+        @connection.execute(stmt, @retry_options)
       end
       Lhm.logger.info("Dropped triggers on #{@origin.name}")
     end

@@ -8,6 +8,7 @@ require 'lhm/throttler'
 require 'lhm/version'
 require 'lhm/cleanup/current'
 require 'lhm/sql_retry'
+require 'lhm/connection'
 require 'lhm/test_support'
 require 'lhm/railtie' if defined?(Rails::Railtie)
 require 'logger'
@@ -82,7 +83,7 @@ module Lhm
   end
 
   def setup(connection)
-    @@connection = connection
+    @@connection = Lhm::Connection.new(connection: connection)
   end
 
   def connection

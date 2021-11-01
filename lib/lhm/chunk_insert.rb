@@ -7,18 +7,11 @@ module Lhm
       @connection = connection
       @lowest = lowest
       @highest = highest
-      @retry_helper = SqlRetry.new(
-        @connection,
-        {
-          log_prefix: "Chunker Insert"
-        }.merge!(options.fetch(:retriable, {}))
-      )
+      @retry_options = options[:retriable] || {}
     end
 
     def insert_and_return_count_of_rows_created
-      @retry_helper.with_retries do |retriable_connection|
-        retriable_connection.update sql
-      end
+      @connection.update(sql, @retry_options)
     end
 
     def sql
