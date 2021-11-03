@@ -62,13 +62,13 @@ module IntegrationHelper
     )
   end
 
-  def connect_master_toxic!(with_retry=false)
+  def connect_master_toxic!(with_retry: false)
     connect!(
       '127.0.0.1',
       $db_config['master_toxic']['port'],
       $db_config['master_toxic']['user'],
       $db_config['master_toxic']['password'],
-    )
+      with_retry)
   end
 
   def connect!(hostname, port, user, password, with_retry = false)

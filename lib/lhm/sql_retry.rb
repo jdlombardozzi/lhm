@@ -52,7 +52,6 @@ module Lhm
         end
 
         yield(@connection)
-
       rescue StandardError => e
         # Not all errors should trigger a reconnect. Some errors such be raised and abort the LHM (such as reconnecting to the wrong host).
         raise e unless error_can_trigger_reconnect?(e)
@@ -183,7 +182,7 @@ module Lhm
           ]
         },
         multiplier: 1, # each successive interval grows by this factor
-        base_interval: 0.2, # the initial interval in seconds between tries.
+        base_interval: 0.25, # the initial interval in seconds between tries.
         tries: 20, # Number of attempts to make at running your code block (includes initial attempt).
         rand_factor: 0, # percentage to randomize the next retry interval time
         max_elapsed_time: Float::INFINITY, # max total time in seconds that code is allowed to keep being retried

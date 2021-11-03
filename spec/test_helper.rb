@@ -10,6 +10,7 @@ require 'minitest/autorun'
 require 'minitest/spec'
 require 'minitest/mock'
 require 'mocha/minitest'
+require 'method_hooks'
 require 'pathname'
 require 'byebug'
 require 'lhm'
@@ -60,23 +61,6 @@ def init_test_db
   conn.query("CREATE DATABASE #{$db_name}")
 end
 
-def setup_active_record_with_query_logs
-
-  tags = [
-    :application,
-    :maintenance,
-    :pid,
-    :db_host
-  ]
-
-  ActiveRecord.query_transformers << ActiveRecord::QueryLogs
-
-  ActiveRecord::QueryLogs.tags = tags
-  ActiveRecord::QueryLogs.prepend_comment = true
-  ActiveRecord::QueryLogs.update_context(maintenance: "lhm")
-end
-
 init_test_db
-setup_active_record_with_query_logs
 
 

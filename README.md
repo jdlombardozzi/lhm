@@ -110,26 +110,20 @@ to prevent accidental data loss. After successful or failed LHM migrations, thes
 tables must be cleaned up.
 
 ### Usage with ProxySQL
-LHM has features to recover from connexion loss that are "ProxySQL-aware". There are multiple ways that connection loss could
+LHM has features to recover from connection loss that are "ProxySQL-aware". There are multiple ways that connection loss could
 induce data loss. Therefore, if LHM is used with ProxySQL, it will check that the MySQL host is consistent across the schema migrations. 
-Here are the required steps to use LHM with ProxySQL:
-1) Ensure that the ActiveRecord::QueryLogs context is set (requires ActiveRecord >= 7.0.0.aplha2). Ex:
-```ruby
-ActiveRecord::QueryLogs.set_context(maintenance: "lhm") do
-   Lhm.setup(conn)
-   // Run LHM
-end
-``` 
-_Note: Other Query annotations could work (i.e. Magnolia), but this feature is only tested with ActiveRecord::QueryLogs_
-2) Add a `mysql_query_rule`:
+This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL. 
+However, to get this feature working, a new ProxySQL query rule must be added.
 ```
 {
-  rule_id = 4
+  rule_id = <rule id>
   active = 1
   match_pattern = "maintenance:lhm"
   destination_hostgroup = <MySQL writer's hostgroup>
 }
 ```
+
+This will ensure that all relevant queries are forwarded to the current writer.
 
 ## Throttler
 

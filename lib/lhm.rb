@@ -90,7 +90,7 @@ module Lhm
   # @option options [Boolean] :reconnect_with_consistent_host
   #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
   def setup(connection, connection_options = {})
-    @@connection = Lhm::Connection.new(connection: connection, options: connection_options)
+    @@connection = Connection.new(connection: connection, options: connection_options)
   end
 
   # Setups DB connection
@@ -102,7 +102,7 @@ module Lhm
     @@connection ||=
       begin
         raise 'Please call Lhm.setup' unless defined?(ActiveRecord)
-        Lhm::Connection.new(connection: ActiveRecord::Base.connection, options: connection_options)
+        Connection.new(connection: ActiveRecord::Base.connection, options: connection_options)
       end
   end
 

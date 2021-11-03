@@ -22,6 +22,7 @@ module Lhm
       super(connection)
     end
 
+    #TODO add retry flag -- best for future contribution
     def execute(query, retry_options = {})
       exec_with_retries(:execute, query, retry_options)
     end

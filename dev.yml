@@ -2,8 +2,8 @@ name: lhm
 up:
   - homebrew:
       - mysql-client@5.7:
-          or: [mysql@5.7]
-          conflicts: [shopify/shopify/mysql-client, mysql-connector-c, mysql, mysql-client]
+          or: [ mysql@5.7 ]
+          conflicts: [ shopify/shopify/mysql-client, mysql-connector-c, mysql, mysql-client ]
       - wget
   - ruby: 2.7.0
   - bundler
@@ -20,10 +20,19 @@ up:
 commands:
   unit: bundle exec rake unit
   int: bundle exec rake integration
-  test: bundle exec rake unit && bundle exec rake integration
+  test:
+    optional: file
+    aliases: [ t ]
+    run: |
+      if [[ $# -eq 0 ]]; then
+        bundle exec rake unit && bundle exec rake integration
+      else
+        bundle exec rake dev TEST="$@"
+      fi
+
   cov: rm -rf coverage; COV=1 bundle exec rake unit && bundle exec rake integration; open coverage/index.html
   logs:
     desc: "See the DB logs (ctrl-c + ctrl-c to exit)"
     run: docker-compose logs -f
-  clean:
+  clear:
     run: docker-compose rm -v -s -f && docker-compose up -d && ./scripts/helpers/wait-for-dbs.sh
