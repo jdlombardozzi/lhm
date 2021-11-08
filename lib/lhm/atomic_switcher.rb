@@ -39,7 +39,7 @@ module Lhm
     private
 
     def execute
-      @connection.execute(atomic_switch, @retry_options)
+      @connection.execute(atomic_switch, retriable: true, retry_options: @retry_options)
     end
   end
 end

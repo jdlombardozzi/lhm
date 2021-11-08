@@ -3,7 +3,6 @@
 
 require File.expand_path(File.dirname(__FILE__)) + '/integration_helper'
 require 'integration/toxiproxy_helper'
-require 'mysql2'
 
 describe Lhm do
   include IntegrationHelper
@@ -20,12 +19,12 @@ describe Lhm do
 
       slave do
         value(table_read(:users).columns['logins']).must_equal({
-                                                                 :type => 'int(12)',
-                                                                 :is_nullable => 'YES',
-                                                                 :column_default => '0',
-                                                                 :comment => '',
-                                                                 :collate => nil,
-                                                               })
+          :type           => 'int(12)',
+          :is_nullable    => 'YES',
+          :column_default => '0',
+          :comment => '',
+          :collate => nil,
+        })
       end
     end
 
@@ -38,12 +37,12 @@ describe Lhm do
 
       slave do
         value(table_read(:custom_primary_key).columns['logins']).must_equal({
-                                                                              :type => 'int(12)',
-                                                                              :is_nullable => 'YES',
-                                                                              :column_default => '0',
-                                                                              :comment => '',
-                                                                              :collate => nil,
-                                                                            })
+          :type           => 'int(12)',
+          :is_nullable    => 'YES',
+          :column_default => '0',
+          :comment => '',
+          :collate => nil,
+        })
       end
     end
 
@@ -56,12 +55,12 @@ describe Lhm do
 
       slave do
         value(table_read(:composite_primary_key).columns['logins']).must_equal({
-                                                                                 :type => 'int(12)',
-                                                                                 :is_nullable => 'YES',
-                                                                                 :column_default => '0',
-                                                                                 :comment => '',
-                                                                                 :collate => nil,
-                                                                               })
+          :type           => 'int(12)',
+          :is_nullable    => 'YES',
+          :column_default => '0',
+          :comment => '',
+          :collate => nil,
+        })
       end
     end
   end
@@ -135,12 +134,12 @@ describe Lhm do
 
       slave do
         value(table_read(:users).columns['logins']).must_equal({
-                                                                 :type => 'int(12)',
-                                                                 :is_nullable => 'YES',
-                                                                 :column_default => '0',
-                                                                 :comment => '',
-                                                                 :collate => nil,
-                                                               })
+          :type => 'int(12)',
+          :is_nullable => 'YES',
+          :column_default => '0',
+          :comment => '',
+          :collate => nil,
+        })
       end
     end
 
@@ -243,12 +242,12 @@ describe Lhm do
 
       slave do
         value(table_read(:users).columns['flag']).must_equal({
-                                                               :type => 'tinyint(1)',
-                                                               :is_nullable => 'YES',
-                                                               :column_default => nil,
-                                                               :comment => '',
-                                                               :collate => nil,
-                                                             })
+          :type => 'tinyint(1)',
+          :is_nullable => 'YES',
+          :column_default => nil,
+          :comment => '',
+          :collate => nil,
+        })
       end
     end
 
@@ -259,12 +258,12 @@ describe Lhm do
 
       slave do
         value(table_read(:users).columns['comment']).must_equal({
-                                                                  :type => 'varchar(20)',
-                                                                  :is_nullable => 'NO',
-                                                                  :column_default => 'none',
-                                                                  :comment => '',
-                                                                  :collate => 'utf8_general_ci',
-                                                                })
+          :type => 'varchar(20)',
+          :is_nullable => 'NO',
+          :column_default => 'none',
+          :comment => '',
+          :collate => 'utf8_general_ci',
+        })
       end
     end
 
@@ -277,12 +276,12 @@ describe Lhm do
 
       slave do
         value(table_read(:small_table).columns['id']).must_equal({
-                                                                   :type => 'int(5)',
-                                                                   :is_nullable => 'NO',
-                                                                   :column_default => nil,
-                                                                   :comment => '',
-                                                                   :collate => nil,
-                                                                 })
+          :type => 'int(5)',
+          :is_nullable => 'NO',
+          :column_default => nil,
+          :comment => '',
+          :collate => nil,
+        })
       end
     end
 
@@ -298,12 +297,12 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['login']).must_equal({
-                                                                :type => 'varchar(255)',
-                                                                :is_nullable => 'YES',
-                                                                :column_default => nil,
-                                                                :comment => '',
-                                                                :collate => 'utf8_general_ci',
-                                                              })
+          :type => 'varchar(255)',
+          :is_nullable => 'YES',
+          :column_default => nil,
+          :comment => '',
+          :collate => 'utf8_general_ci',
+        })
 
         result = select_one('SELECT login from users')
         result = result['login'] if result.respond_to?(:has_key?)
@@ -323,12 +322,12 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['group']
         value(table_read(:users).columns['fnord']).must_equal({
-                                                                :type => 'varchar(255)',
-                                                                :is_nullable => 'YES',
-                                                                :column_default => 'Superfriends',
-                                                                :comment => '',
-                                                                :collate => 'utf8_general_ci',
-                                                              })
+          :type => 'varchar(255)',
+          :is_nullable => 'YES',
+          :column_default => 'Superfriends',
+          :comment => '',
+          :collate => 'utf8_general_ci',
+        })
 
         result = select_one('SELECT `fnord` from users')
         result = result['fnord'] if result.respond_to?(:has_key?)
@@ -350,18 +349,19 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['user_name']).must_equal({
-                                                                    :type => 'varchar(255)',
-                                                                    :is_nullable => 'YES',
-                                                                    :column_default => nil,
-                                                                    :comment => '',
-                                                                    :collate => 'utf8mb4_unicode_ci',
-                                                                  })
+             :type => 'varchar(255)',
+             :is_nullable => 'YES',
+             :column_default => nil,
+             :comment => '',
+             :collate => 'utf8mb4_unicode_ci',
+           })
 
         result = select_one('SELECT `user_name` from users')
         result = result['user_name'] if result.respond_to?(:has_key?)
         value(result).must_equal('a user')
       end
     end
+
 
     it 'should rename a column with a comment' do
       table_create(:users)
@@ -377,12 +377,12 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['reference']
         value(table_read(:users).columns['ref']).must_equal({
-                                                              :type => 'int(11)',
-                                                              :is_nullable => 'YES',
-                                                              :column_default => nil,
-                                                              :comment => 'RefComment',
-                                                              :collate => nil,
-                                                            })
+           :type => 'int(11)',
+           :is_nullable => 'YES',
+           :column_default => nil,
+           :comment => 'RefComment',
+           :collate => nil,
+         })
 
         result = select_one('SELECT `ref` from users')
         result = result['ref'] if result.respond_to?(:has_key?)
@@ -404,12 +404,12 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['group']
         value(table_read(:users).columns['fnord']).must_equal({
-                                                                :type => 'varchar(255)',
-                                                                :is_nullable => 'YES',
-                                                                :column_default => nil,
-                                                                :comment => '',
-                                                                :collate => 'utf8_general_ci',
-                                                              })
+           :type => 'varchar(255)',
+           :is_nullable => 'YES',
+           :column_default => nil,
+           :comment => '',
+           :collate => 'utf8_general_ci',
+         })
 
         result = select_one('SELECT `fnord` from users')
         result = result['fnord'] if result.respond_to?(:has_key?)
@@ -429,12 +429,12 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['user_name']).must_equal({
-                                                                    :type => 'varchar(255)',
-                                                                    :is_nullable => 'YES',
-                                                                    :column_default => nil,
-                                                                    :comment => '',
-                                                                    :collate => 'utf8_general_ci',
-                                                                  })
+          :type => 'varchar(255)',
+          :is_nullable => 'YES',
+          :column_default => nil,
+          :comment => '',
+          :collate => 'utf8_general_ci',
+        })
 
         result = select_one('SELECT `user_name` from users')
         result = result['user_name'] if result.respond_to?(:has_key?)
@@ -456,12 +456,12 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['user_name']).must_equal({
-                                                                    :type => 'varchar(255)',
-                                                                    :is_nullable => 'NO',
-                                                                    :column_default => nil,
-                                                                    :comment => '',
-                                                                    :collate => 'utf8_general_ci',
-                                                                  })
+          :type => 'varchar(255)',
+          :is_nullable => 'NO',
+          :column_default => nil,
+          :comment => '',
+          :collate => 'utf8_general_ci',
+        })
 
         result = select_one('SELECT `user_name` from users')
         result = result['user_name'] if result.respond_to?(:has_key?)
@@ -503,12 +503,12 @@ describe Lhm do
         table_data = table_read(:users)
         assert_nil table_data.columns['fnord']
         value(table_read(:users).columns['group']).must_equal({
-                                                                :type => 'varchar(255)',
-                                                                :is_nullable => 'YES',
-                                                                :column_default => 'Superfriends',
-                                                                :comment => '',
-                                                                :collate => 'utf8_general_ci',
-                                                              })
+          :type => 'varchar(255)',
+          :is_nullable => 'YES',
+          :column_default => 'Superfriends',
+          :comment => '',
+          :collate => 'utf8_general_ci',
+        })
       end
     end
 

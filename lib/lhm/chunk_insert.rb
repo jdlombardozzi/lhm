@@ -12,7 +12,7 @@ module Lhm
     end
 
     def insert_and_return_count_of_rows_created
-      @connection.update(Lhm::ProxySQLHelper.tagged(sql), @retry_options)
+      @connection.update(sql, retriable: true, retry_options: @retry_options)
     end
 
     def sql

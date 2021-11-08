@@ -72,25 +72,24 @@ module IntegrationHelper
   end
 
   def connect!(hostname, port, user, password, with_retry = false)
-    adapter = Lhm::Connection.new(connection: ar_conn(hostname, port, user, password), options: {reconnect_with_consistent_host: with_retry})
-    Lhm.setup(adapter)
+    adapter = ar_conn(hostname, port, user, password)
+    Lhm.setup(adapter,{reconnect_with_consistent_host: with_retry})
     unless defined?(@@cleaned_up)
       Lhm.cleanup(true)
-      @@cleaned_up = true
+      @@cleaned_up  = true
     end
     @connection = adapter
   end
 
   def ar_conn(host, port, user, password)
     ActiveRecord::Base.establish_connection(
-      :adapter => 'mysql2',
-      :host => host,
+      :adapter  => 'mysql2',
+      :host     => host,
       :username => user,
-      :port => port,
+      :port     => port,
       :password => password,
       :database => $db_name
     )
-
     ActiveRecord::Base.connection
   end
 
@@ -211,7 +210,7 @@ module IntegrationHelper
       show indexes in `#{ table_name }`
      where key_name = '#{ key_name }'
        and non_unique = #{ non_unique }
-     >)
+    >)
   end
 
   #
@@ -239,7 +238,6 @@ module IntegrationHelper
   def simulate_failed_migration
     Lhm::Entangler.class_eval do
       alias_method :old_after, :after
-
       def after
         true
       end

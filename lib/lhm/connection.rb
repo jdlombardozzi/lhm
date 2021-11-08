@@ -22,20 +22,35 @@ module Lhm
       super(connection)
     end
 
-    #TODO add retry flag -- best for future contribution
-    def execute(query, retry_options = {})
-      exec_with_retries(:execute, query, retry_options)
+    def execute(query, retriable: false, retry_options: {})
+      if retriable
+        exec_with_retries(:execute, query, retry_options)
+      else
+        exec(:execute, query)
+      end
     end
 
-    def update(query, retry_options = {})
-      exec_with_retries(:update, query, retry_options)
+    def update(query, retriable: false, retry_options: {})
+      if retriable
+        exec_with_retries(:update, query, retry_options)
+      else
+        exec(:update, query)
+      end
     end
 
-    def select_value(query, retry_options = {})
-      exec_with_retries(:select_value, query, retry_options)
+    def select_value(query, retriable: false, retry_options: {})
+      if retriable
+        exec_with_retries(:select_value, query, retry_options)
+      else
+        exec(:select_value, query)
+      end
     end
 
     private
+
+    def exec(method, sql)
+      connection.public_send(method, Lhm::ProxySQLHelper.tagged(sql))
+    end
 
     def exec_with_retries(method, sql, retry_options = {})
       retry_options[:log_prefix] ||= file
@@ -54,7 +69,7 @@ module Lhm
 
     def relevant_caller
       lhm_stack = caller.select { |x| x.include?("/lhm") }
-      first_candidate_index = lhm_stack.find_index {|line| !line.include?(__FILE__)}
+      first_candidate_index = lhm_stack.find_index { |line| !line.include?(__FILE__) }
 
       # Find the file that called the `#execute` (fallbacks to current file)
       return lhm_stack.first unless first_candidate_index

@@ -54,7 +54,7 @@ module Lhm
 
       def execute_ddls
         ddls.each do |ddl|
-            @connection.execute(ddl, @retry_config)
+            @connection.execute(ddl, retriable: true, retry_options: @retry_config)
         end
         Lhm.logger.info("Dropped triggers on #{@lhm_triggers_for_origin.join(', ')}")
         Lhm.logger.info("Dropped tables #{@lhm_triggers_for_origin.join(', ')}")

@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'retriable', '>= 3.0.0'
 
   s.add_development_dependency 'activerecord'
-  s.add_development_dependency 'activesupport', '6.1.4'
+  s.add_development_dependency 'activesupport', '~> 6.1.4'
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'mocha'
   s.add_development_dependency 'method_hooks'
