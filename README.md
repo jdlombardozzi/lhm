@@ -110,11 +110,12 @@ to prevent accidental data loss. After successful or failed LHM migrations, thes
 tables must be cleaned up.
 
 ### Usage with ProxySQL
-LHM has features to recover from connection loss that are "ProxySQL-aware". There are multiple ways that connection loss could
-induce data loss. Therefore, if LHM is used with ProxySQL, it will check that the MySQL host is consistent across the schema migrations. 
+LHM has security features to recover from connection loss when used in conjunction with ProxySQL. There are multiple ways that
+connection loss could induce data loss. Therefore  it will perform additional checks to
+ensure that the MySQL host stays consistent across the schema migrations if the feature is enabled. 
 This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL. 
 However, to get this feature working, a new ProxySQL query rule must be added.
-```
+```cnf
 {
   rule_id = <rule id>
   active = 1
@@ -124,6 +125,31 @@ However, to get this feature working, a new ProxySQL query rule must be added.
 ```
 
 This will ensure that all relevant queries are forwarded to the current writer.
+
+Also, ProxySQL disables [multiplexing](https://proxysql.com/documentation/multiplexing/) for `select` on `@@` variables.
+Therefore, the following rules must be added to ensure that queries (even if tagged with `/*maintenance:lhm*/`) get 
+forwarded to the right target.
+```cnf
+{
+  rule_id = <rule id>
+  active = 1
+  match_digest = "@@global\.server_id"
+  multiplex = 2
+},
+{
+  rule_id = <rule id>
+  active = 1
+  match_digest = "@@global\.hostname"
+  multiplex = 2
+}
+```
+
+Once these changes are added to the ProxySQL configuration (either through `.cnf` or dynamically through the admin interface), 
+the feature can be enabled. This is done by adding this flag when doing the initial setup:
+```ruby
+ Lhm.setup(connection, options: {reconnect_with_consistent_host: true})
+```
+**Note**: This feature is disabled by default
 
 ## Throttler
 
