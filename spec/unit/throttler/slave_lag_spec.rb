@@ -39,7 +39,7 @@ describe Lhm::Throttler::Slave do
     @logs = StringIO.new
     Lhm.logger = Logger.new(@logs)
 
-    @dummy_mysql_client_config = lambda { { 'username' => 'user', 'password' => 'pw', 'database' => 'db' } }
+    @dummy_mysql_client_config = lambda { {'username' => 'user', 'password' => 'pw', 'database' => 'db'} }
   end
 
   describe "#client" do
@@ -64,7 +64,7 @@ describe Lhm::Throttler::Slave do
 
     describe 'with proper config' do
       it "creates a new Mysql2::Client" do
-        expected_config = { username: 'user', password: 'pw', database: 'db', host: 'slave' }
+        expected_config = {username: 'user', password: 'pw', database: 'db', host: 'slave'}
         Mysql2::Client.stubs(:new).with(expected_config).returns(mock())
 
         assert Lhm::Throttler::Slave.new('slave', @dummy_mysql_client_config).connection
@@ -73,7 +73,7 @@ describe Lhm::Throttler::Slave do
 
     describe 'with active record config' do
       it 'logs and creates client' do
-        active_record_config = { username: 'user', password: 'pw', database: 'db' }
+        active_record_config = {username: 'user', password: 'pw', database: 'db'}
         ActiveRecord::Base.stubs(:connection_pool).returns(stub(db_config: stub(configuration_hash: active_record_config)))
 
         Mysql2::Client.stubs(:new).returns(mock())
@@ -92,9 +92,9 @@ describe Lhm::Throttler::Slave do
       class Connection
         def self.query(query)
           if query == Lhm::Throttler::Slave::SQL_SELECT_MAX_SLAVE_LAG
-            [{ 'Seconds_Behind_Master' => 20 }]
+            [{'Seconds_Behind_Master' => 20}]
           elsif query == Lhm::Throttler::Slave::SQL_SELECT_SLAVE_HOSTS
-            [{ 'host' => '1.1.1.1:80' }]
+            [{'host' => '1.1.1.1:80'}]
           end
         end
       end
@@ -104,7 +104,7 @@ describe Lhm::Throttler::Slave do
 
       class StoppedConnection
         def self.query(query)
-          [{ 'Seconds_Behind_Master' => nil }]
+          [{'Seconds_Behind_Master' => nil}]
         end
       end
 
@@ -286,7 +286,7 @@ describe Lhm::Throttler::SlaveLag do
       describe 'with the :check_only option' do
         describe 'with a callable argument' do
           before do
-            check_only = lambda { { 'host' => '1.1.1.3' } }
+            check_only = lambda {{'host' => '1.1.1.3'}}
             @throttler = Lhm::Throttler::SlaveLag.new :check_only => check_only
           end
 
@@ -300,7 +300,6 @@ describe Lhm::Throttler::SlaveLag do
         describe 'with a non-callable argument' do
           before do
             @throttler = Lhm::Throttler::SlaveLag.new :check_only => 'I cannot be called'
-
             def @throttler.master_slave_hosts
               ['1.1.1.1', '1.1.1.4']
             end

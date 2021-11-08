@@ -48,6 +48,7 @@ describe Lhm::Chunker do
       @chunker.run
     end
 
+
     it 'chunks the result set according to the stride size' do
       def @throttler.stride
         2
@@ -128,6 +129,7 @@ describe Lhm::Chunker do
 
       @chunker.run
     end
+
 
     it 'separates filter conditions from chunking conditions' do
       @chunker = Lhm::Chunker.new(@migration, @connection, :throttler => @throttler,

@@ -48,7 +48,6 @@ module Lhm
         verify_can_run
 
         affected_rows = ChunkInsert.new(@migration, @connection, bottom, top, @retry_options).insert_and_return_count_of_rows_created
-
         expected_rows = top - bottom + 1
 
         # Only log the chunker progress every 5 minutes instead of every iteration

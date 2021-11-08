@@ -117,7 +117,7 @@ describe Lhm::SqlRetry do
     exception = assert_raises { @helper.trigger_wait_lock }
 
     assert_equal "Lock wait timeout exceeded; try restarting transaction", exception.message
-    assert_equal  Mysql2::Error::TimeoutError, exception.class
+    assert_equal Mysql2::Error::TimeoutError, exception.class
 
     assert_equal 2, @helper.record_count # no records inserted
     puts "*" * 64

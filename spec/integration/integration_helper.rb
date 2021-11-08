@@ -173,14 +173,14 @@ module IntegrationHelper
     connection.data_source_exists?(table.name)
   end
 
-  def new_mysql_connection(role = 'master')
+  def new_mysql_connection(role='master')
     Mysql2::Client.new(
       host: '127.0.0.1',
       database: $db_name,
       username: $db_config[role]['user'],
       password: $db_config[role]['password'],
       port: $db_config[role]['port'],
-      socket: $db_config[role]['socket'],
+      socket: $db_config[role]['socket']
     )
   end
 
@@ -211,7 +211,7 @@ module IntegrationHelper
       show indexes in `#{ table_name }`
      where key_name = '#{ key_name }'
        and non_unique = #{ non_unique }
-                 >)
+     >)
   end
 
   #

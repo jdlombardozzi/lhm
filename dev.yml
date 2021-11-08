@@ -2,8 +2,8 @@ name: lhm
 up:
   - homebrew:
       - mysql-client@5.7:
-          or: [ mysql@5.7 ]
-          conflicts: [ shopify/shopify/mysql-client, mysql-connector-c, mysql, mysql-client ]
+          or: [mysql@5.7]
+          conflicts: [shopify/shopify/mysql-client, mysql-connector-c, mysql, mysql-client]
       - wget
   - ruby: 2.7.0
   - bundler

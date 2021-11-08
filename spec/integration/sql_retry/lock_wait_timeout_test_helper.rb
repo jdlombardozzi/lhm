@@ -34,7 +34,7 @@ class LockWaitTimeoutTestHelper
   def hold_lock(seconds = lock_duration, queue = @queue)
     # We are intentionally choosing to create a gap in the between the IDs to
     # create a gap lock.
-    insert_records_at_ids(main_conn, [1001, 1003])
+    insert_records_at_ids(main_conn, [1001,1003])
     locked_id = 1002
 
     # This is the locking thread. It creates gap lock. It must be created first.

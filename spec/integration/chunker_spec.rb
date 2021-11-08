@@ -16,7 +16,6 @@ describe Lhm::Chunker do
       @destination = table_create(:destination)
       @migration = Lhm::Migration.new(@origin, @destination)
       @logs = StringIO.new
-
       Lhm.logger = Logger.new(@logs)
     end
 
