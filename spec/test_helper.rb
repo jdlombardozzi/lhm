@@ -12,7 +12,6 @@ require 'minitest/mock'
 require 'mocha/minitest'
 require 'method_hooks'
 require 'pathname'
-require 'byebug'
 require 'lhm'
 
 $project = Pathname.new(File.dirname(__FILE__) + '/..').cleanpath

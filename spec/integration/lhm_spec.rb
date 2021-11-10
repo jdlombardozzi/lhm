@@ -592,7 +592,7 @@ describe Lhm do
       end
 
       it " should not try to reconnect if reconnect_with_consistent_host is not provided" do
-        connect_master_toxic!(with_retry: false)
+        connect_master_with_toxiproxy!(with_retry: false)
 
         table_create(:users)
         100.times { |n| execute("insert into users set reference = '#{ n }'") }
@@ -610,7 +610,7 @@ describe Lhm do
       end
 
       it "should reconnect if reconnect_with_consistent_host is true" do
-        connect_master_toxic!(with_retry: true)
+        connect_master_with_toxiproxy!(with_retry: true)
         mysql_disabled = false
 
         table_create(:users)

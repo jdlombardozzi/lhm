@@ -12,7 +12,7 @@ module Lhm
     end
 
     def insert_and_return_count_of_rows_created
-      @connection.update(sql, retriable: true, retry_options: @retry_options)
+      @connection.update(sql, should_retry: true, retry_options: @retry_options)
     end
 
     def sql

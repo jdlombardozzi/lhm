@@ -110,8 +110,8 @@ to prevent accidental data loss. After successful or failed LHM migrations, thes
 tables must be cleaned up.
 
 ### Usage with ProxySQL
-LHM has security features to recover from connection loss when used in conjunction with ProxySQL. There are multiple ways that
-connection loss could induce data loss. Therefore  it will perform additional checks to
+LHM can recover from connection loss. However, when used in conjunction with ProxySQL, there are multiple ways that
+connection loss could induce data loss (if triggered by a failover). Therefore  it will perform additional checks to
 ensure that the MySQL host stays consistent across the schema migrations if the feature is enabled. 
 This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL. 
 However, to get this feature working, a new ProxySQL query rule must be added.

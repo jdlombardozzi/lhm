@@ -25,9 +25,9 @@ module ToxiproxyHelper
 
     def with_kill_and_restart(target, restart_after)
       thread = Thread.new do
-        sleep(restart_after)
+        sleep(restart_after) unless restart_after.nil?
         Toxiproxy[target].enable
-      end unless restart_after.nil?
+      end
 
       Toxiproxy[target].disable
 
@@ -35,10 +35,6 @@ module ToxiproxyHelper
 
     ensure
       thread.join
-
-      #  Sometimes it's flaky and will keep it disabled
-      service = Toxiproxy.find_by_name!(target)
-      service.enable unless service.enabled
     end
   end
 end

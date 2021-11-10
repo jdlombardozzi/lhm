@@ -14,35 +14,56 @@ module Lhm
       @retry_options = retry_config || default_retry_config
       @sql_retry = Lhm::SqlRetry.new(
         connection,
-        retry_config,
-        options[:reconnect_with_consistent_host] || false
+        options: retry_config,
+        reconnect_with_consistent_host: options[:reconnect_with_consistent_host] || false
       )
 
       # Creates delegation for the ActiveRecord Connection
       super(connection)
     end
 
-    def execute(query, retriable: false, retry_options: {})
-      if retriable
+    def options=(options)
+      # If any other flags are added. Add the "processing" here
+      @sql_retry.reconnect_with_consistent_host = options[:reconnect_with_consistent_host] || false
+    end
+
+    def execute(query, should_retry: false, retry_options: {})
+      if should_retry
         exec_with_retries(:execute, query, retry_options)
       else
         exec(:execute, query)
       end
     end
 
-    def update(query, retriable: false, retry_options: {})
-      if retriable
+    def update(query, should_retry: false, retry_options: {})
+      if should_retry
         exec_with_retries(:update, query, retry_options)
       else
         exec(:update, query)
       end
     end
 
-    def select_value(query, retriable: false, retry_options: {})
-      if retriable
+    def select_value(query, should_retry: false, retry_options: {})
+      if should_retry
         exec_with_retries(:select_value, query, retry_options)
       else
         exec(:select_value, query)
+      end
+    end
+
+    def select_values(query, should_retry: false, retry_options: {})
+      if should_retry
+        exec_with_retries(:select_values, query, retry_options)
+      else
+        exec(:select_values, query)
+      end
+    end
+
+    def select_one(query, should_retry: false, retry_options: {})
+      if should_retry
+        exec_with_retries(:select_one, query, retry_options)
+      else
+        exec(:select_one, query)
       end
     end
 

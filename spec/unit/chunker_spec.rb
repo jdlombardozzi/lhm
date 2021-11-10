@@ -12,7 +12,7 @@ require 'lhm/connection'
 describe Lhm::Chunker do
   include UnitHelper
 
-  EXPECTED_RETRY_FLAGS = {:retriable => true, :retry_options => {}}
+  EXPECTED_RETRY_FLAGS = {:should_retry => true, :retry_options => {}}
 
   before(:each) do
     @origin = Lhm::Table.new('foo')

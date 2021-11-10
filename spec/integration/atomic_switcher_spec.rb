@@ -32,6 +32,7 @@ describe Lhm::AtomicSwitcher do
     it 'should retry and log on lock wait timeouts' do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(true)
+      ar_connection.stubs(:active?).returns(true)
       ar_connection.stubs(:execute).returns([["dummy"]], [["dummy"]], [["dummy"]])
                    .then
                    .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
@@ -55,6 +56,7 @@ describe Lhm::AtomicSwitcher do
     it 'should give up on lock wait timeouts after a configured number of tries' do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(true)
+      ar_connection.stubs(:active?).returns(true)
       ar_connection.stubs(:execute).returns([["dummy"]], [["dummy"]], [["dummy"]])
                 .then
                 .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')

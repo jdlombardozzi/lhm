@@ -31,7 +31,7 @@ module Lhm
       @retry_options = options[:retriable] || {}
       @retry_helper = SqlRetry.new(
         @connection,
-        {
+        options: {
           log_prefix: "Chunker"
         }.merge!(@retry_options)
       )
@@ -79,7 +79,7 @@ module Lhm
     private
 
     def raise_on_non_pk_duplicate_warning
-      @connection.execute("show warnings", retriable: true, retry_options: @retry_options).each do |level, code, message|
+      @connection.execute("show warnings", should_retry: true, retry_options: @retry_options).each do |level, code, message|
         unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
           m = "Unexpected warning found for inserted row: #{message}"
           Lhm.logger.warn(m)
@@ -101,7 +101,7 @@ module Lhm
 
     def upper_id(next_id, stride)
       sql = "select id from `#{ @migration.origin_name }` where id >= #{ next_id } order by id limit 1 offset #{ stride - 1}"
-      top = @connection.select_value(sql, retriable: true, retry_options: @retry_options)
+      top = @connection.select_value(sql, should_retry: true, retry_options: @retry_options)
 
       [top ? top.to_i : @limit, @limit].min
     end

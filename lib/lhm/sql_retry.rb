@@ -28,41 +28,39 @@ module Lhm
     # This internal error is used to trigger retries from the parent Retriable.retriable in #with_retries
     class ReconnectToHostSuccessful < Lhm::Error; end
 
-    def initialize(connection, options = {}, with_consistent_host = true)
+    def initialize(connection, options: {}, reconnect_with_consistent_host: true)
       @connection = connection
       @log_prefix = options.delete(:log_prefix)
       @global_retry_config = default_retry_config.dup.merge!(options)
-      if (@with_consistent_host = with_consistent_host)
+      if (@reconnect_with_consistent_host = reconnect_with_consistent_host)
         @initial_hostname = hostname
         @initial_server_id = server_id
       end
     end
 
-    # Complete explanation of algorithm: https://github.com/Shopify/db-engineering/issues/98#issuecomment-934948590
+    # Complete explanation of algorithm: https://github.com/Shopify/lhm/pull/112
     def with_retries(retry_config = {})
-      # Overrides log prefix if necessary or passed from parent to child instance (ex: Chunker -> ChunkInsert)
-      old_prefix = @log_prefix
       @log_prefix = retry_config.delete(:log_prefix)
 
       retry_config = @global_retry_config.dup.merge!(retry_config)
 
       Retriable.retriable(retry_config) do
-        if @with_consistent_host
+        if @reconnect_with_consistent_host
           raise Lhm::Error.new("Could not reconnected to initial MySQL host. Aborting to avoid data-loss") unless same_host_as_initial?
         end
 
         yield(@connection)
       rescue StandardError => e
         # Not all errors should trigger a reconnect. Some errors such be raised and abort the LHM (such as reconnecting to the wrong host).
-        raise e unless error_can_trigger_reconnect?(e)
-        reconnect_with_host_check! if @with_consistent_host
+        # The error will be raised the connection is still active (i.e. no need to reconnect) or if the connection is
+        # dead (i.e. not active) and @reconnect_with_host is false (i.e. instructed not to reconnect)
+        raise e if @connection.active? || (!@connection.active? && !@reconnect_with_consistent_host)
+        reconnect_with_host_check! if @reconnect_with_consistent_host
       end
-    ensure
-      # Restore the initial log prefix once outside of the block (ex: Chunker -> ChunkInsert).
-      @log_prefix = old_prefix
     end
 
     attr_reader :global_retry_config
+    attr_accessor :reconnect_with_consistent_host
 
     private
 
@@ -81,7 +79,7 @@ module Lhm
     def mysql_single_value(name)
       query = Lhm::ProxySQLHelper.tagged("SELECT #{name} LIMIT 1")
 
-      @connection&.execute(query).to_a.first.tap do |record|
+      @connection.execute(query).to_a.first.tap do |record|
         return record&.first
       end
     end
@@ -102,14 +100,14 @@ module Lhm
         Retriable.retriable(host_retry_config) do
           # tries to reconnect. On failure will trigger a retry
           @connection.reconnect!
-          new_host = hostname
-          if new_host == @initial_hostname
-            # This is not an actual error, but it needs to trigger the Retriable
-            # from #with_retries to execute the desired logic again
+
+          if same_host_as_initial?
+            # This is not an actual error, but controlled way to get the parent `Retriable.retriable` to retry
+            # the statement that failed (since the Retriable gem only retries on errors).
             raise ReconnectToHostSuccessful.new("LHM successfully reconnected to initial host: #{@initial_hostname} (server_id: #{@initial_server_id})")
           else
             # New Master --> abort LHM (reconnecting will not change anything)
-            raise Lhm::Error.new("Reconnected to wrong host. Started migration on: #{@initial_hostname} (server_id: #{@initial_server_id}), but reconnected to: #{new_host} (server_id: #{@initial_server_id}).")
+            raise Lhm::Error.new("Reconnected to wrong host. Started migration on: #{@initial_hostname} (server_id: #{@initial_server_id}), but reconnected to: #{hostname} (server_id: #{@initial_server_id}).")
           end
         end
       rescue StandardError => e
@@ -117,27 +115,15 @@ module Lhm
         # Therefore, if the connection is re-established successfully AND the host is the same, LHM can retry the query
         # that originally failed.
         raise e if reconnect_successful?(e)
-        # If the connection was not successful, the parent retriable will raise "unregistered" errors.
+        # If the connection was not successful, the parent retriable will raise any error that originated from the
+        # `@connection.reconnect!`
         # Therefore, this error will cause the LHM to abort
         raise Lhm::Error.new("LHM tried the reconnection procedure but failed. Latest error: #{e.message}")
       end
     end
 
     def reconnect_successful?(e)
-      e.class == ReconnectToHostSuccessful
-    end
-
-    def error_can_trigger_reconnect?(err)
-      err_msg = err.message
-      regexes = [
-        /Lost connection to MySQL server during query/,
-        /MySQL client is not connected/,
-        /Max connect timeout reached/,
-        /Unknown MySQL server host/,
-        /connection is locked to hostgroup/
-      ]
-
-      regexes.any? { |reg| err_msg.match(reg) }
+      e.is_a?(ReconnectToHostSuccessful)
     end
 
     # For a full list of configuration options see https://github.com/kamui/retriable

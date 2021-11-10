@@ -87,7 +87,7 @@ module Lhm
   #
   # @param [ActiveRecord::Base] connection ActiveRecord Connection
   # @param [Hash] connection_options Optional options (defaults to: empty hash)
-  # @option options [Boolean] :reconnect_with_consistent_host
+  # @option connection_options [Boolean] :reconnect_with_consistent_host
   #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
   def setup(connection, connection_options = {})
     @@connection = Connection.new(connection: connection, options: connection_options)
@@ -96,14 +96,16 @@ module Lhm
   # Setups DB connection
   #
   # @param [Hash] connection_options Optional options (defaults to: empty hash)
-  # @option options [Boolean] :reconnect_with_consistent_host
+  # @option connection_options [Boolean] :reconnect_with_consistent_host
   #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
-  def connection(connection_options = {})
-    @@connection ||=
-      begin
-        raise 'Please call Lhm.setup' unless defined?(ActiveRecord)
-        Connection.new(connection: ActiveRecord::Base.connection, options: connection_options)
-      end
+  def connection(connection_options = nil)
+    if @@connection.nil?
+      raise 'Please call Lhm.setup' unless defined?(ActiveRecord)
+      @@connection = Connection.new(connection: ActiveRecord::Base.connection, options: connection_options || {})
+    else
+      @@connection.options = connection_options unless connection_options.nil?
+    end
+    @@connection
   end
 
   def self.logger=(new_logger)

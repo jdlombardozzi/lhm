@@ -13,10 +13,11 @@ describe Lhm::Connection do
   it "Should find use calling file as prefix" do
     ar_connection = mock()
     ar_connection.stubs(:execute).raises(LOCK_WAIT).then.returns(true)
+    ar_connection.stubs(:active?).returns(true)
 
     connection = Lhm::Connection.new(connection: ar_connection)
 
-    connection.execute("SHOW TABLES", retriable: true, retry_options: { base_interval: 0 })
+    connection.execute("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0 })
 
     log_messages = @logs.string.split("\n")
     assert_equal(1, log_messages.length)
@@ -28,10 +29,11 @@ describe Lhm::Connection do
     ar_connection.stubs(:execute).raises(LOCK_WAIT)
                  .then.raises(LOCK_WAIT)
                  .then.returns(true)
+    ar_connection.stubs(:active?).returns(true)
 
     connection = Lhm::Connection.new(connection: ar_connection)
 
-    connection.execute("SHOW TABLES", retriable: true, retry_options: { base_interval: 0, tries: 3 })
+    connection.execute("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0, tries: 3 })
 
     log_messages = @logs.string.split("\n")
     assert_equal(2, log_messages.length)
@@ -42,10 +44,11 @@ describe Lhm::Connection do
     ar_connection.stubs(:update).raises(LOCK_WAIT)
                  .then.raises(LOCK_WAIT)
                  .then.returns(1)
+    ar_connection.stubs(:active?).returns(true)
 
     connection = Lhm::Connection.new(connection: ar_connection)
 
-    val = connection.update("SHOW TABLES", retriable: true, retry_options:{ base_interval: 0, tries: 3 })
+    val = connection.update("SHOW TABLES", should_retry: true, retry_options:{ base_interval: 0, tries: 3 })
 
     log_messages = @logs.string.split("\n")
     assert_equal val, 1
@@ -57,10 +60,11 @@ describe Lhm::Connection do
     ar_connection.stubs(:select_value).raises(LOCK_WAIT)
                  .then.raises(LOCK_WAIT)
                  .then.returns("dummy")
+    ar_connection.stubs(:active?).returns(true)
 
     connection = Lhm::Connection.new(connection: ar_connection)
 
-    val = connection.select_value("SHOW TABLES", retriable: true, retry_options: { base_interval: 0, tries: 3 })
+    val = connection.select_value("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0, tries: 3 })
 
     log_messages = @logs.string.split("\n")
     assert_equal val, "dummy"
@@ -71,10 +75,11 @@ describe Lhm::Connection do
     ar_connection = mock()
     ar_connection.expects(:public_send).with(:select_value, "#{Lhm::ProxySQLHelper::ANNOTATION}SHOW TABLES").returns("dummy")
     ar_connection.stubs(:execute).times(4).returns([["dummy"]])
+    ar_connection.stubs(:active?).returns(true)
 
     connection = Lhm::Connection.new(connection: ar_connection, options: { reconnect_with_consistent_host: true })
 
-    val = connection.select_value("SHOW TABLES", retriable: true, retry_options: { base_interval: 0, tries: 3 })
+    val = connection.select_value("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0, tries: 3 })
 
     assert_equal val, "dummy"
   end

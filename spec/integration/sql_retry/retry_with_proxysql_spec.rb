@@ -2,7 +2,6 @@ require 'minitest/autorun'
 require 'mysql2'
 require 'lhm'
 require 'toxiproxy'
-require 'byebug'
 
 require 'integration/sql_retry/lock_wait_timeout_test_helper'
 require 'integration/sql_retry/db_connection_helper'
@@ -19,8 +18,8 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
 
     @connection = DBConnectionHelper::new_mysql_connection(:proxysql, true, true)
 
-    @lhm_retry = Lhm::SqlRetry.new(@connection, {},
-                                   true)
+    @lhm_retry = Lhm::SqlRetry.new(@connection, options: {},
+                                   reconnect_with_consistent_host: true)
   end
 
   after(:each) do
@@ -28,7 +27,7 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
     Lhm.logger = @old_logger
   end
 
-  it "Will abort if cannot find same host" do
+  it "Will abort if service is down" do
 
     e = assert_raises Lhm::Error do
       #Service down
@@ -64,8 +63,8 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
     Lhm::SqlRetry.any_instance.stubs(:hostname).returns("mysql-1").then.returns("mysql-2")
 
     # Need new instance for stub to take into effect
-    lhm_retry = Lhm::SqlRetry.new(@connection, {},
-                                  true)
+    lhm_retry = Lhm::SqlRetry.new(@connection, options: {},
+                                  reconnect_with_consistent_host: true)
 
     e = assert_raises Lhm::Error do
       #Creating a network blip
