@@ -31,10 +31,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'mocha'
   s.add_development_dependency 'method_hooks'
   s.add_development_dependency 'rake'
-  s.add_development_dependency 'activerecord'
   s.add_development_dependency 'mysql2'
-  s.add_development_dependency 'rake'
   s.add_development_dependency 'rubocop'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'toxiproxy'
+  s.add_development_dependency 'appraisal'
 end

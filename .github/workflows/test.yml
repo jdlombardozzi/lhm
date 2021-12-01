@@ -10,15 +10,28 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ruby-version: "2.4"
+            activerecord-version: "5.2"
+          - ruby-version: "2.5"
+            activerecord-version: "6.0"
+          - ruby-version: "2.7.5"
+            activerecord-version: "6.1"
+          - ruby-version: "3.0"
+            activerecord-version: "7.0.0.alpha2"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.5.1
+          ruby-version: ${{matrix.ruby-version}}
           bundler-cache: false
       - name: Install Ruby packages
-        run: bundle install
+        run: BUNDLE_GEMFILE="${GITHUB_WORKSPACE}/gemfiles/activerecord_${{ matrix.activerecord-version }}.gemfile" bundle install
       - name: Install Ubuntu packages
         run: sudo apt-get update && sudo apt-get install numactl libaio-dev libmysqlclient-dev
       - name: Setup MySQL and ProxySQL (docker-compose)
@@ -27,4 +40,4 @@ jobs:
         run: ./scripts/helpers/wait-for-dbs.sh
         timeout-minutes: 2
       - name: Run tests
-        run: bundle exec rake specs
+        run: BUNDLE_GEMFILE="${GITHUB_WORKSPACE}/gemfiles/activerecord_${{ matrix.activerecord-version }}.gemfile" bundle exec rake specs

@@ -1,6 +1,5 @@
 *.gem
 .bundle
-gemfiles/*.lock
 pkg/*
 .rvmrc
 .ruby-version
@@ -11,4 +10,3 @@ omg.ponies
 *~
 coverage
 .idea/
-Gemfile.lock
