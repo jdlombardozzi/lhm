@@ -24,7 +24,6 @@ up:
 commands:
   unit: bundle exec rake unit
   int: bundle exec rake integration
-<<<<<<< HEAD
   test:
     optional: file
     aliases: [ t ]
@@ -34,11 +33,7 @@ commands:
       else
         bundle exec rake dev TEST="$@"
       fi
-
-=======
-  test: bundle exec rake unit && bundle exec rake integration
   appraisals: bundle exec appraisal rake specs
->>>>>>> 3cd603b (Added Appraisal to ensure consistent behavior with different Active Record versions)
   cov: rm -rf coverage; COV=1 bundle exec rake unit && bundle exec rake integration; open coverage/index.html
   logs:
     desc: "See the DB logs (ctrl-c + ctrl-c to exit)"
