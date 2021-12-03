@@ -4,17 +4,22 @@
 require File.expand_path(File.dirname(__FILE__)) + '/unit_helper'
 
 require 'lhm/chunk_insert'
+require 'lhm/connection'
 
 describe Lhm::ChunkInsert do
   before(:each) do
-    @connection = stub(:connection)
+    ar_connection = mock()
+    ar_connection.stubs(:execute).returns([["dummy"]])
+    @connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: false})
     @origin = Lhm::Table.new('foo')
     @destination = Lhm::Table.new('bar')
   end
 
   describe "#sql" do
     describe "when migration has no conditions" do
-      before { @migration = Lhm::Migration.new(@origin, @destination) }
+      before do
+        @migration = Lhm::Migration.new(@origin, @destination)
+      end
 
       it "uses a simple where clause" do
         assert_equal(

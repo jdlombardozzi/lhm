@@ -6,6 +6,7 @@ require File.expand_path(File.dirname(__FILE__)) + '/integration_helper'
 require 'lhm/table'
 require 'lhm/migration'
 require 'lhm/entangler'
+require 'lhm/connection'
 
 describe Lhm::Entangler do
   include IntegrationHelper
@@ -17,7 +18,8 @@ describe Lhm::Entangler do
       @origin = table_create('origin')
       @destination = table_create('destination')
       @migration = Lhm::Migration.new(@origin, @destination)
-      @entangler = Lhm::Entangler.new(@migration, connection)
+      @connection = Lhm::Connection.new(connection: connection)
+      @entangler = Lhm::Entangler.new(@migration, @connection)
     end
 
     it 'should replay inserts from origin into destination' do

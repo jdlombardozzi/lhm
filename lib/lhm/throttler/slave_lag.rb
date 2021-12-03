@@ -124,8 +124,8 @@ module Lhm
           else
             raise ArgumentError, "Expected #{config_proc.inspect} to respond to `call`"
           end
-        else # otherwise default to ActiveRecord provided config
-          ActiveRecord::Base.connection_pool.spec.config.dup
+        else
+          ActiveRecord::Base.connection_pool.db_config.configuration_hash.dup
         end
         config.deep_symbolize_keys!
         config[:host] = @host

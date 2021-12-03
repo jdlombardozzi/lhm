@@ -2,6 +2,7 @@
 # Schmidt
 
 require File.expand_path(File.dirname(__FILE__)) + '/integration_helper'
+require 'integration/toxiproxy_helper'
 
 describe Lhm do
   include IntegrationHelper
@@ -578,6 +579,78 @@ describe Lhm do
 
         slave do
           value(count_all(:users)).must_equal(40)
+        end
+      end
+    end
+
+    describe 'connection' do
+      include ToxiproxyHelper
+
+      before(:each) do
+        @logs = StringIO.new
+        Lhm.logger = Logger.new(@logs)
+      end
+
+      it " should not try to reconnect if reconnect_with_consistent_host is not provided" do
+        connect_master_with_toxiproxy!(with_retry: false)
+
+        table_create(:users)
+        100.times { |n| execute("insert into users set reference = '#{ n }'") }
+
+        assert_raises ActiveRecord::StatementInvalid do
+          Toxiproxy[:mysql_master].down do
+            Lhm.change_table(:users, :atomic_switch => false) do |t|
+              t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL")
+              t.ddl("ALTER TABLE #{t.name} DROP PRIMARY KEY, ADD PRIMARY KEY (username, id)")
+              t.ddl("ALTER TABLE #{t.name} ADD INDEX (id)")
+              t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL AUTO_INCREMENT")
+            end
+          end
+        end
+      end
+
+      it "should reconnect if reconnect_with_consistent_host is true" do
+        connect_master_with_toxiproxy!(with_retry: true)
+        mysql_disabled = false
+
+        table_create(:users)
+        100.times { |n| execute("insert into users set reference = '#{ n }'") }
+
+        # Redeclare Lhm::ChunkInsert to use Hook to disable MySQL writer for 3 seconds before first insert
+        Lhm::ChunkInsert.class_eval do
+          extend MethodHooks
+
+          before(:insert_and_return_count_of_rows_created) do
+            unless mysql_disabled
+              mysql_disabled = true
+              Thread.new do
+                Toxiproxy[:mysql_master].down do
+                  sleep 3
+                end
+              end
+            end
+          end
+
+          # Need to call `#method_added` manually to have the hooks take into effect
+          method_added(:insert_and_return_count_of_rows_created)
+        end
+
+        Lhm.change_table(:users, :atomic_switch => false) do |t|
+          t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL")
+          t.ddl("ALTER TABLE #{t.name} DROP PRIMARY KEY, ADD PRIMARY KEY (username, id)")
+          t.ddl("ALTER TABLE #{t.name} ADD INDEX (id)")
+          t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL AUTO_INCREMENT")
+        end
+
+        log_lines = @logs.string.split("\n")
+
+        assert log_lines.one?{ |line| line.include?("Lost connection to MySQL, will retry to connect to same host")}
+        assert log_lines.any?{ |line| line.include?("ActiveRecord::ConnectionNotEstablished: 'Lost connection to MySQL server at 'reading initial communication packet'")}
+        assert log_lines.one?{ |line| line.include?("LHM successfully reconnected to initial host")}
+        assert log_lines.one?{ |line| line.include?("100% complete")}
+
+        slave do
+          value(count_all(:users)).must_equal(100)
         end
       end
     end

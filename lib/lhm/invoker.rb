@@ -16,8 +16,8 @@ module Lhm
   class Invoker
     include SqlHelper
     LOCK_WAIT_TIMEOUT_DELTA = 10
-      INNODB_LOCK_WAIT_TIMEOUT_MAX=1073741824.freeze # https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_lock_wait_timeout
-      LOCK_WAIT_TIMEOUT_MAX=31536000.freeze # https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
+    INNODB_LOCK_WAIT_TIMEOUT_MAX=1073741824.freeze # https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_lock_wait_timeout
+    LOCK_WAIT_TIMEOUT_MAX=31536000.freeze # https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
 
     attr_reader :migrator, :connection
 

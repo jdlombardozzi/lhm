@@ -109,6 +109,48 @@ end
 to prevent accidental data loss. After successful or failed LHM migrations, these leftover
 tables must be cleaned up.
 
+### Usage with ProxySQL
+LHM can recover from connection loss. However, when used in conjunction with ProxySQL, there are multiple ways that
+connection loss could induce data loss (if triggered by a failover). Therefore  it will perform additional checks to
+ensure that the MySQL host stays consistent across the schema migrations if the feature is enabled. 
+This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL. 
+However, to get this feature working, a new ProxySQL query rule must be added.
+```cnf
+{
+  rule_id = <rule id>
+  active = 1
+  match_pattern = "maintenance:lhm"
+  destination_hostgroup = <MySQL writer's hostgroup>
+}
+```
+
+This will ensure that all relevant queries are forwarded to the current writer.
+
+Also, ProxySQL disables [multiplexing](https://proxysql.com/documentation/multiplexing/) for `select` on `@@` variables.
+Therefore, the following rules must be added to ensure that queries (even if tagged with `/*maintenance:lhm*/`) get 
+forwarded to the right target.
+```cnf
+{
+  rule_id = <rule id>
+  active = 1
+  match_digest = "@@global\.server_id"
+  multiplex = 2
+},
+{
+  rule_id = <rule id>
+  active = 1
+  match_digest = "@@global\.hostname"
+  multiplex = 2
+}
+```
+
+Once these changes are added to the ProxySQL configuration (either through `.cnf` or dynamically through the admin interface), 
+the feature can be enabled. This is done by adding this flag when doing the initial setup:
+```ruby
+ Lhm.setup(connection, options: {reconnect_with_consistent_host: true})
+```
+**Note**: This feature is disabled by default
+
 ## Throttler
 
 LHM uses a throttling mechanism to read data in your original table. By default, 2,000 rows are read each 0.1 second. If you want to change that behaviour, you can pass an instance of a throttler with the `throttler` option. In this example, 1,000 rows will be read with a 10 second delay between each processing:

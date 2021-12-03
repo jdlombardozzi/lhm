@@ -1,4 +1,5 @@
 require 'lhm/sql_retry'
+require 'lhm/proxysql_helper'
 
 module Lhm
   class ChunkInsert
@@ -11,7 +12,7 @@ module Lhm
     end
 
     def insert_and_return_count_of_rows_created
-      @connection.update(sql, @retry_options)
+      @connection.update(sql, should_retry: true, retry_options: @retry_options)
     end
 
     def sql

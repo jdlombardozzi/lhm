@@ -35,6 +35,15 @@ module IntegrationHelper
     @connection
   end
 
+  def connect_proxysql!
+    connect!(
+      '127.0.0.1',
+      $db_config['proxysql']['port'],
+      $db_config['proxysql']['user'],
+      $db_config['proxysql']['password'],
+    )
+  end
+
   def connect_master!
     connect!(
       '127.0.0.1',
@@ -53,9 +62,18 @@ module IntegrationHelper
     )
   end
 
-  def connect!(hostname, port, user, password)
-    adapter = Lhm::Connection.new(connection: ar_conn(hostname, port, user, password))
-    Lhm.setup(adapter)
+  def connect_master_with_toxiproxy!(with_retry: false)
+    connect!(
+      '127.0.0.1',
+      $db_config['master_toxic']['port'],
+      $db_config['master_toxic']['user'],
+      $db_config['master_toxic']['password'],
+      with_retry)
+  end
+
+  def connect!(hostname, port, user, password, with_retry = false)
+    adapter = ar_conn(hostname, port, user, password)
+    Lhm.setup(adapter,{reconnect_with_consistent_host: with_retry})
     unless defined?(@@cleaned_up)
       Lhm.cleanup(true)
       @@cleaned_up  = true
@@ -119,7 +137,7 @@ module IntegrationHelper
   # Helps testing behaviour when another client locks the db
   def start_locking_thread(lock_for, queue, locking_query)
     Thread.new do
-      conn = Mysql2::Client.new(host: '127.0.0.1', database: $db_name, user: 'root', port: 3306)
+      conn = new_mysql_connection
       conn.query('BEGIN')
       conn.query(locking_query)
       queue.push(true)
