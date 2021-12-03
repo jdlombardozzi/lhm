@@ -21,18 +21,19 @@ Gem::Specification.new do |s|
   s.executables   = []
   s.metadata['allowed_push_host'] = "https://rubygems.org"
 
-  s.required_ruby_version = '>= 2.5.0'
+  s.required_ruby_version = '>= 2.3.0'
 
   s.add_dependency 'retriable', '>= 3.0.0'
 
   s.add_development_dependency 'activerecord'
-  s.add_development_dependency 'activesupport', '~> 6.1.4'
+  s.add_development_dependency 'activesupport'
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'mocha'
   s.add_development_dependency 'method_hooks'
-  s.add_development_dependency 'mysql2'
   s.add_development_dependency 'rake'
-  s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'mysql2'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'toxiproxy'
+  s.add_development_dependency 'appraisal'
+  s.add_development_dependency 'byebug'
 end

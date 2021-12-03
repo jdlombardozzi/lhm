@@ -5,8 +5,12 @@ up:
           or: [mysql@5.7]
           conflicts: [shopify/shopify/mysql-client, mysql-connector-c, mysql, mysql-client]
       - wget
-  - ruby: 2.5.0
+  - ruby: 2.7.0
   - bundler
+  - custom:
+      name: Get Appraisal gems
+      met?: bundle exec appraisal install
+      meet: ":"
   - docker
   - custom:
       name: Docker Compose
@@ -29,7 +33,7 @@ commands:
       else
         bundle exec rake dev TEST="$@"
       fi
-
+  appraisals: bundle exec appraisal rake specs
   cov: rm -rf coverage; COV=1 bundle exec rake unit && bundle exec rake integration; open coverage/index.html
   logs:
     desc: "See the DB logs (ctrl-c + ctrl-c to exit)"

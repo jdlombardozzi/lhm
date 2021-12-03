@@ -78,7 +78,7 @@ module IntegrationHelper
       Lhm.cleanup(true)
       @@cleaned_up  = true
     end
-    @connection = adapter
+    @connection = Lhm.connection
   end
 
   def ar_conn(host, port, user, password)

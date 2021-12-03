@@ -11,6 +11,7 @@ require 'minitest/spec'
 require 'minitest/mock'
 require 'mocha/minitest'
 require 'method_hooks'
+require 'byebug'
 require 'pathname'
 require 'lhm'
 

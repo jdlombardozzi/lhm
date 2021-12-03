@@ -645,7 +645,7 @@ describe Lhm do
         log_lines = @logs.string.split("\n")
 
         assert log_lines.one?{ |line| line.include?("Lost connection to MySQL, will retry to connect to same host")}
-        assert log_lines.any?{ |line| line.include?("ActiveRecord::ConnectionNotEstablished: 'Lost connection to MySQL server at 'reading initial communication packet'")}
+        assert log_lines.any?{ |line| line.include?("Lost connection to MySQL server at 'reading initial communication packet'")}
         assert log_lines.one?{ |line| line.include?("LHM successfully reconnected to initial host")}
         assert log_lines.one?{ |line| line.include?("100% complete")}
 
