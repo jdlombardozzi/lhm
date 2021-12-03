@@ -45,17 +45,20 @@ module Lhm
       retry_config = @global_retry_config.dup.merge!(retry_config)
 
       Retriable.retriable(retry_config) do
-        if @reconnect_with_consistent_host
-          raise Lhm::Error.new("Could not reconnected to initial MySQL host. Aborting to avoid data-loss") unless same_host_as_initial?
-        end
+        # Using begin -> rescue -> end for Ruby 2.4 compatibility
+        begin
+          if @reconnect_with_consistent_host
+            raise Lhm::Error.new("Could not reconnected to initial MySQL host. Aborting to avoid data-loss") unless same_host_as_initial?
+          end
 
-        yield(@connection)
-      rescue StandardError => e
-        # Not all errors should trigger a reconnect. Some errors such be raised and abort the LHM (such as reconnecting to the wrong host).
-        # The error will be raised the connection is still active (i.e. no need to reconnect) or if the connection is
-        # dead (i.e. not active) and @reconnect_with_host is false (i.e. instructed not to reconnect)
-        raise e if @connection.active? || (!@connection.active? && !@reconnect_with_consistent_host)
-        reconnect_with_host_check! if @reconnect_with_consistent_host
+          yield(@connection)
+        rescue StandardError => e
+          # Not all errors should trigger a reconnect. Some errors such be raised and abort the LHM (such as reconnecting to the wrong host).
+          # The error will be raised the connection is still active (i.e. no need to reconnect) or if the connection is
+          # dead (i.e. not active) and @reconnect_with_host is false (i.e. instructed not to reconnect)
+          raise e if @connection.active? || (!@connection.active? && !@reconnect_with_consistent_host)
+          reconnect_with_host_check! if @reconnect_with_consistent_host
+        end
       end
     end
 

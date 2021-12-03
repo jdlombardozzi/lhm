@@ -2,8 +2,9 @@
 appraise "activerecord-5.2" do
   gem "activerecord", "5.2.6"
 
-# This gemfile will be ran against ruby 2.3 and newer simplecov requires 2.5
-  gem "simplecov", "0.17.1"
+# This gemfile will be ran against ruby 2.4 and some gems might require 2.4+. The following list are the gems
+# and their respective versions that work with ruby <= 2.4
+  gem "simplecov", "0.18.5"
   gem "docile", "1.3.5"
 end
 
