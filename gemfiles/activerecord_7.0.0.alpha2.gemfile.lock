@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    lhm-shopify (3.5.0)
+    lhm-shopify (3.5.1)
       retriable (>= 3.0.0)
 
 GEM
@@ -17,6 +17,7 @@ GEM
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+    after_do (0.4.0)
     appraisal (2.4.1)
       bundler
       rake
@@ -26,7 +27,6 @@ GEM
     docile (1.4.0)
     i18n (1.8.11)
       concurrent-ruby (~> 1.0)
-    method_hooks (1.0.1)
     minitest (5.14.4)
     mocha (1.13.0)
     mysql2 (0.5.3)
@@ -49,11 +49,10 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord (= 7.0.0.alpha2)
-  activesupport
+  after_do
   appraisal
   byebug
   lhm-shopify!
-  method_hooks
   minitest
   mocha
   mysql2

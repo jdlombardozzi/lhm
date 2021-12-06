@@ -618,7 +618,7 @@ describe Lhm do
 
         # Redeclare Lhm::ChunkInsert to use Hook to disable MySQL writer for 3 seconds before first insert
         Lhm::ChunkInsert.class_eval do
-          extend MethodHooks
+          extend AfterDo
 
           before(:insert_and_return_count_of_rows_created) do
             unless mysql_disabled
@@ -648,6 +648,8 @@ describe Lhm do
         assert log_lines.any?{ |line| line.include?("Lost connection to MySQL server at 'reading initial communication packet'")}
         assert log_lines.one?{ |line| line.include?("LHM successfully reconnected to initial host")}
         assert log_lines.one?{ |line| line.include?("100% complete")}
+
+        Lhm::ChunkInsert.remove_all_callbacks
 
         slave do
           value(count_all(:users)).must_equal(100)
