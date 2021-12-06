@@ -26,10 +26,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'retriable', '>= 3.0.0'
 
   s.add_development_dependency 'activerecord'
-  s.add_development_dependency 'activesupport'
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'mocha'
-  s.add_development_dependency 'method_hooks'
+  s.add_development_dependency 'after_do'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'mysql2'
   s.add_development_dependency 'simplecov'
