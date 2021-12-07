@@ -31,7 +31,7 @@ module Lhm
       @retry_options = options[:retriable] || {}
       @retry_helper = SqlRetry.new(
         @connection,
-        options: {
+        retry_options: {
           log_prefix: "Chunker"
         }.merge!(@retry_options)
       )

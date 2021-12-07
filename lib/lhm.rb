@@ -28,7 +28,7 @@ module Lhm
   extend Throttler
   extend self
 
-  DEFAULT_LOGGER_OPTIONS =  { level: Logger::INFO, file: STDOUT }
+  DEFAULT_LOGGER_OPTIONS = { level: Logger::INFO, file: STDOUT }
 
   # Alters a table with the changes described in the block
   #
@@ -99,12 +99,13 @@ module Lhm
   # @option connection_options [Boolean] :reconnect_with_consistent_host
   #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
   def connection(connection_options = nil)
-    if @@connection.nil?
+    @@connection ||= begin
       raise 'Please call Lhm.setup' unless defined?(ActiveRecord)
       @@connection = Connection.new(connection: ActiveRecord::Base.connection, options: connection_options || {})
-    else
-      @@connection.options = connection_options unless connection_options.nil?
     end
+
+    @@connection.process_connection_options(connection_options) unless connection_options.nil?
+
     @@connection
   end
 

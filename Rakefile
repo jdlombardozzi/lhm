@@ -23,7 +23,6 @@ Rake::TestTask.new('dev') do |t|
   t.libs << 'spec'
   t.test_files = FileList[
     'spec/test_helper.rb',
-    'spec/integration/lhm_spec.rb'
   #  Add file to test individually
   ]
   t.verbose = true

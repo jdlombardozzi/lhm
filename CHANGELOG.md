@@ -1,3 +1,18 @@
+# 3.5.2 (Dec, 2021)
+* Fixed error on undefined connection, when calling `Lhm.connection` without calling `Lhm.setup` first
+* Changed `Lhm.connection.connection` to `lhm.connection.ar_connection` for increased clarity and readability
+
+# 3.5.1 (Dec , 2021)
+* Add better logging to the LHM components (https://github.com/Shopify/lhm/pull/112)
+* Slave lag throttler now supports ActiveRecord > 6.0
+* [Dev] Add `Appraisals` to test against multiple version
+
+# 3.5.0 (Dec , 2021)
+* Duplicate of 3.4.2 (unfortunate mistake)
+
+# 3.4.2 (Sept, 2021)
+* Fixed Chunker's undefined name error (https://github.com/Shopify/lhm/pull/110)
+
 # 3.4.1 (Sep 22, 2021)
 
 * Add better logging to the LHM components (https://github.com/Shopify/lhm/pull/108)
