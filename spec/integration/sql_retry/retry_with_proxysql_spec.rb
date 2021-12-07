@@ -18,7 +18,7 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
 
     @connection = DBConnectionHelper::new_mysql_connection(:proxysql, true, true)
 
-    @lhm_retry = Lhm::SqlRetry.new(@connection, options: {},
+    @lhm_retry = Lhm::SqlRetry.new(@connection, retry_options: {},
                                    reconnect_with_consistent_host: true)
   end
 
@@ -63,7 +63,7 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
     Lhm::SqlRetry.any_instance.stubs(:hostname).returns("mysql-1").then.returns("mysql-2")
 
     # Need new instance for stub to take into effect
-    lhm_retry = Lhm::SqlRetry.new(@connection, options: {},
+    lhm_retry = Lhm::SqlRetry.new(@connection, retry_options: {},
                                   reconnect_with_consistent_host: true)
 
     e = assert_raises Lhm::Error do

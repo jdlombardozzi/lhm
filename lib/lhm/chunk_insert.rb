@@ -3,12 +3,12 @@ require 'lhm/proxysql_helper'
 
 module Lhm
   class ChunkInsert
-    def initialize(migration, connection, lowest, highest, options = {})
+    def initialize(migration, connection, lowest, highest, retry_options = {})
       @migration = migration
       @connection = connection
       @lowest = lowest
       @highest = highest
-      @retry_options = options[:retriable] || {}
+      @retry_options = retry_options
     end
 
     def insert_and_return_count_of_rows_created

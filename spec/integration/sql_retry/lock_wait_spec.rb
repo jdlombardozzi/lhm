@@ -55,7 +55,7 @@ describe Lhm::SqlRetry do
   it "successfully executes the SQL despite the errors encountered" do
     # Start a thread to retry, once the lock is held, execute the block
     @helper.with_waiting_lock do |waiting_connection|
-      sql_retry = Lhm::SqlRetry.new(waiting_connection, options: {
+      sql_retry = Lhm::SqlRetry.new(waiting_connection, retry_options: {
         base_interval: 0.2, # first retry after 200ms
         multiplier: 1, # subsequent retries wait 1x longer than first retry (no change)
         tries: 3, # we only need 3 tries (including the first) for the scenario described below
@@ -98,7 +98,7 @@ describe Lhm::SqlRetry do
     puts "*" * 64
     # Start a thread to retry, once the lock is held, execute the block
     @helper.with_waiting_lock do |waiting_connection|
-      sql_retry = Lhm::SqlRetry.new(waiting_connection, options: {
+      sql_retry = Lhm::SqlRetry.new(waiting_connection, retry_options: {
         base_interval: 0.2, # first retry after 200ms
         multiplier: 1, # subsequent retries wait 1x longer than first retry (no change)
         tries: 2, # we need 3 tries (including the first) for the scenario described below, but we only get two...we will fail

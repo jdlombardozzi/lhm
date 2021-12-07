@@ -26,4 +26,21 @@ describe Lhm do
       value(Lhm.logger.instance_eval { @logdev }.dev.path).must_equal 'omg.ponies'
     end
   end
+
+  describe 'api' do
+
+    before(:each) do
+      @connection = mock()
+    end
+
+    it 'should create a new connection when calling setup' do
+      Lhm.setup(@connection)
+      value(Lhm.connection).must_be_kind_of(Lhm::Connection)
+    end
+
+    it 'should create a new connection when none is created' do
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      value(Lhm.connection).must_be_kind_of(Lhm::Connection)
+    end
+  end
 end

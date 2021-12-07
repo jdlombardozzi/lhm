@@ -2,19 +2,15 @@ require 'delegate'
 require 'lhm/sql_retry'
 
 module Lhm
-  class Connection < SimpleDelegator
-
     # Lhm::Connection inherits from SingleDelegator. It will forward any unknown method calls to the ActiveRecord
     # connection.
-    alias connection __getobj__
-    alias connection= __setobj__
+  class Connection < SimpleDelegator
 
-    def initialize(connection:, default_log_prefix: nil, options: {}, retry_config: {})
+    def initialize(connection:, default_log_prefix: nil, options: {})
       @default_log_prefix = default_log_prefix
-      @retry_options = retry_config || default_retry_config
       @sql_retry = Lhm::SqlRetry.new(
         connection,
-        options: retry_config,
+        retry_options: options[:retriable] || {},
         reconnect_with_consistent_host: options[:reconnect_with_consistent_host] || false
       )
 
@@ -22,7 +18,20 @@ module Lhm
       super(connection)
     end
 
-    def options=(options)
+    def ar_connection
+      # Get object from the simple delegator
+      __getobj__
+    end
+
+    def ar_connection=(connection)
+      raise Lhm::Error.new("Lhm::Connection requires an active record connection to operate") if connection.nil?
+
+      @sql_retry.connection = connection
+      # Sets connection as the delegated object
+      __setobj__(connection)
+    end
+
+    def process_connection_options(options)
       # If any other flags are added. Add the "processing" here
       @sql_retry.reconnect_with_consistent_host = options[:reconnect_with_consistent_host] || false
     end
@@ -70,7 +79,7 @@ module Lhm
     private
 
     def exec(method, sql)
-      connection.public_send(method, Lhm::ProxySQLHelper.tagged(sql))
+      ar_connection.public_send(method, Lhm::ProxySQLHelper.tagged(sql))
     end
 
     def exec_with_retries(method, sql, retry_options = {})

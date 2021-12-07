@@ -28,10 +28,10 @@ module Lhm
     # This internal error is used to trigger retries from the parent Retriable.retriable in #with_retries
     class ReconnectToHostSuccessful < Lhm::Error; end
 
-    def initialize(connection, options: {}, reconnect_with_consistent_host: true)
+    def initialize(connection, retry_options: {}, reconnect_with_consistent_host: false)
       @connection = connection
-      @log_prefix = options.delete(:log_prefix)
-      @global_retry_config = default_retry_config.dup.merge!(options)
+      @log_prefix = retry_options.delete(:log_prefix)
+      @global_retry_config = default_retry_config.dup.merge!(retry_options)
       if (@reconnect_with_consistent_host = reconnect_with_consistent_host)
         @initial_hostname = hostname
         @initial_server_id = server_id
@@ -63,7 +63,7 @@ module Lhm
     end
 
     attr_reader :global_retry_config
-    attr_accessor :reconnect_with_consistent_host
+    attr_accessor :connection, :reconnect_with_consistent_host
 
     private
 
