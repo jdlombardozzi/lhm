@@ -301,6 +301,15 @@ COV=1 bundle exec rake unit && bundle exec rake integration
 open coverage/index.html
 ```
 
+### Merging for a new version
+When creating a PR for a new version, make sure that th version has been bumped in `lib/lhm/version.rb`. Then run the following code snippet to ensure the everything is consistent, otherwise 
+the gem will not publish.
+```bash
+bundle install
+bundle update
+bundle exec appraisals install
+```
+
 ### Docker Compose
 The integration tests rely on a replication configuration for MySQL which is being proxied by an instance of ProxySQL.
 It is important that every container is running to execute the integration test suite.

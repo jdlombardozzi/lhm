@@ -29,6 +29,6 @@ describe "ProxySQL integration" do
       port: "33005",
       )
 
-    assert_equal conn.query("/*maintenance:lhm*/SELECT @@global.hostname as host").each.first["host"], "mysql-1"
+    assert_equal conn.query("SELECT @@global.hostname as host #{Lhm::ProxySQLHelper::ANNOTATION}").each.first["host"], "mysql-1"
   end
 end

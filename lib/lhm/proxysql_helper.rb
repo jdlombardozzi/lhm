@@ -4,7 +4,7 @@ module Lhm
     ANNOTATION = "/*maintenance:lhm*/"
 
     def tagged(sql)
-      "#{ANNOTATION}#{sql}"
+      "#{sql} #{ANNOTATION}"
     end
   end
 end
