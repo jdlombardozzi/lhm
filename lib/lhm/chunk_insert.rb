@@ -3,6 +3,9 @@ require 'lhm/proxysql_helper'
 
 module Lhm
   class ChunkInsert
+
+    LOG_PREFIX = "ChunkInsert"
+
     def initialize(migration, connection, lowest, highest, retry_options = {})
       @migration = migration
       @connection = connection
@@ -12,7 +15,7 @@ module Lhm
     end
 
     def insert_and_return_count_of_rows_created
-      @connection.update(sql, should_retry: true, retry_options: @retry_options)
+      @connection.update(sql, should_retry: true, log_prefix: LOG_PREFIX)
     end
 
     def sql

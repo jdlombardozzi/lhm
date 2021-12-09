@@ -592,7 +592,7 @@ describe Lhm do
       end
 
       it " should not try to reconnect if reconnect_with_consistent_host is not provided" do
-        connect_master_with_toxiproxy!(with_retry: false)
+        connect_master_with_toxiproxy!
 
         table_create(:users)
         100.times { |n| execute("insert into users set reference = '#{ n }'") }
@@ -610,7 +610,7 @@ describe Lhm do
       end
 
       it "should reconnect if reconnect_with_consistent_host is true" do
-        connect_master_with_toxiproxy!(with_retry: true)
+        connect_master_with_toxiproxy!
         mysql_disabled = false
 
         table_create(:users)
@@ -635,7 +635,7 @@ describe Lhm do
           method_added(:insert_and_return_count_of_rows_created)
         end
 
-        Lhm.change_table(:users, :atomic_switch => false) do |t|
+        Lhm.change_table(:users, atomic_switch: false, reconnect_with_consistent_host: true) do |t|
           t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL")
           t.ddl("ALTER TABLE #{t.name} DROP PRIMARY KEY, ADD PRIMARY KEY (username, id)")
           t.ddl("ALTER TABLE #{t.name} ADD INDEX (id)")
@@ -654,6 +654,21 @@ describe Lhm do
         slave do
           value(count_all(:users)).must_equal(100)
         end
+      end
+
+      it "should not tag the queries with ProxySQL's tags if requested" do
+        ActiveRecord::Base.logger = Logger.new(@logs)
+
+        Lhm.change_table(:users, atomic_switch: false, disable_proxysql_tags: true) do |t|
+          t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL")
+          t.ddl("ALTER TABLE #{t.name} DROP PRIMARY KEY, ADD PRIMARY KEY (username, id)")
+          t.ddl("ALTER TABLE #{t.name} ADD INDEX (id)")
+          t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL AUTO_INCREMENT")
+        end
+
+        log_lines = @logs.string.split("\n")
+
+        assert log_lines.none?{ |line| line.include?("/*maintenance:lhm*/")}
       end
     end
   end

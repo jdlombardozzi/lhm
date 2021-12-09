@@ -30,21 +30,15 @@ module Lhm
 
     def initialize(connection, retry_options: {}, reconnect_with_consistent_host: false)
       @connection = connection
-      @log_prefix = retry_options.delete(:log_prefix)
-      @global_retry_config = default_retry_config.dup.merge!(retry_options)
-      if (@reconnect_with_consistent_host = reconnect_with_consistent_host)
-        @initial_hostname = hostname
-        @initial_server_id = server_id
-      end
+      self.retry_config = retry_options
+      self.reconnect_with_consistent_host = reconnect_with_consistent_host
     end
 
     # Complete explanation of algorithm: https://github.com/Shopify/lhm/pull/112
-    def with_retries(retry_config = {})
-      @log_prefix = retry_config.delete(:log_prefix)
+    def with_retries(log_prefix: nil)
+      @log_prefix = log_prefix || "" # No prefix. Just logs
 
-      retry_config = @global_retry_config.dup.merge!(retry_config)
-
-      Retriable.retriable(retry_config) do
+      Retriable.retriable(@retry_config) do
         # Using begin -> rescue -> end for Ruby 2.4 compatibility
         begin
           if @reconnect_with_consistent_host
@@ -62,8 +56,20 @@ module Lhm
       end
     end
 
-    attr_reader :global_retry_config
-    attr_accessor :connection, :reconnect_with_consistent_host
+    # Both attributes will have defined setters
+    attr_reader :retry_config, :reconnect_with_consistent_host
+    attr_accessor :connection
+
+    def retry_config=(retry_options)
+      @retry_config = default_retry_config.dup.merge!(retry_options)
+    end
+
+    def reconnect_with_consistent_host=(reconnect)
+      if (@reconnect_with_consistent_host = reconnect)
+        @initial_hostname = hostname
+        @initial_server_id = server_id
+      end
+    end
 
     private
 

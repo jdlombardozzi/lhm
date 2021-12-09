@@ -6,8 +6,11 @@ module Lhm
     # connection.
   class Connection < SimpleDelegator
 
-    def initialize(connection:, default_log_prefix: nil, options: {})
-      @default_log_prefix = default_log_prefix
+    # These attributes have writers defined in this file
+    attr_reader :retry_config
+    alias ar_connection __getobj__
+
+    def initialize(connection:, options: {})
       @sql_retry = Lhm::SqlRetry.new(
         connection,
         retry_options: options[:retriable] || {},
@@ -18,11 +21,6 @@ module Lhm
       super(connection)
     end
 
-    def ar_connection
-      # Get object from the simple delegator
-      __getobj__
-    end
-
     def ar_connection=(connection)
       raise Lhm::Error.new("Lhm::Connection requires an active record connection to operate") if connection.nil?
 
@@ -31,46 +29,53 @@ module Lhm
       __setobj__(connection)
     end
 
-    def process_connection_options(options)
-      # If any other flags are added. Add the "processing" here
-      @sql_retry.reconnect_with_consistent_host = options[:reconnect_with_consistent_host] || false
+    # Accessors for SQLRetry options
+    def reconnect_with_consistent_host=(reconnect)
+      @sql_retry.reconnect_with_consistent_host = reconnect
     end
 
-    def execute(query, should_retry: false, retry_options: {})
+    def retry_config=(config)
+      @retry_config = config
+      @sql_retry.retry_config = config
+    end
+
+    # ActiveRecord::Base overridden methods to incorporate custom retry logic
+    # All other methods will be delegated
+    def execute(query, should_retry: false, log_prefix: nil)
       if should_retry
-        exec_with_retries(:execute, query, retry_options)
+        exec_with_retries(:execute, query, log_prefix)
       else
         exec(:execute, query)
       end
     end
 
-    def update(query, should_retry: false, retry_options: {})
+    def update(query, should_retry: false, log_prefix: nil)
       if should_retry
-        exec_with_retries(:update, query, retry_options)
+        exec_with_retries(:update, query, log_prefix)
       else
         exec(:update, query)
       end
     end
 
-    def select_value(query, should_retry: false, retry_options: {})
+    def select_value(query, should_retry: false, log_prefix: nil)
       if should_retry
-        exec_with_retries(:select_value, query, retry_options)
+        exec_with_retries(:select_value, query, log_prefix)
       else
         exec(:select_value, query)
       end
     end
 
-    def select_values(query, should_retry: false, retry_options: {})
+    def select_values(query, should_retry: false, log_prefix: nil)
       if should_retry
-        exec_with_retries(:select_values, query, retry_options)
+        exec_with_retries(:select_values, query, log_prefix)
       else
         exec(:select_values, query)
       end
     end
 
-    def select_one(query, should_retry: false, retry_options: {})
+    def select_one(query, should_retry: false, log_prefix: nil)
       if should_retry
-        exec_with_retries(:select_one, query, retry_options)
+        exec_with_retries(:select_one, query, log_prefix)
       else
         exec(:select_one, query)
       end
@@ -82,9 +87,9 @@ module Lhm
       ar_connection.public_send(method, Lhm::ProxySQLHelper.tagged(sql))
     end
 
-    def exec_with_retries(method, sql, retry_options = {})
-      retry_options[:log_prefix] ||= file
-      @sql_retry.with_retries(retry_options) do |conn|
+    def exec_with_retries(method, sql, log_prefix=nil)
+      effective_log_prefix = log_prefix || file
+      @sql_retry.with_retries(log_prefix: effective_log_prefix) do |conn|
         conn.public_send(method, Lhm::ProxySQLHelper.tagged(sql))
       end
     end

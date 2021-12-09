@@ -22,6 +22,8 @@ module Lhm
 
     attr_reader :connection
 
+    LOG_PREFIX = "LockedSwitcher"
+
     def initialize(migration, connection = nil)
       @migration = migration
       @connection = connection

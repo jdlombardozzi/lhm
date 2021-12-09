@@ -4,6 +4,9 @@ require 'lhm/sql_retry'
 module Lhm
   module Cleanup
     class Current
+
+      LOG_PREFIX = "Current"
+
       def initialize(run, origin_table_name, connection, options={})
         @run = run
         @table_name = TableName.new(origin_table_name)
@@ -54,7 +57,7 @@ module Lhm
 
       def execute_ddls
         ddls.each do |ddl|
-            @connection.execute(ddl, should_retry: true, retry_options: @retry_config)
+            @connection.execute(ddl, should_retry: true, log_prefix: LOG_PREFIX)
         end
         Lhm.logger.info("Dropped triggers on #{@lhm_triggers_for_origin.join(', ')}")
         Lhm.logger.info("Dropped tables #{@lhm_triggers_for_origin.join(', ')}")

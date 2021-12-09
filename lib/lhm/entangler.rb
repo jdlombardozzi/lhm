@@ -13,14 +13,15 @@ module Lhm
 
     attr_reader :connection
 
+    LOG_PREFIX = "Entangler"
+
     # Creates entanglement between two tables. All creates, updates and deletes
     # to origin will be repeated on the destination table.
-    def initialize(migration, connection = nil, options = {})
+    def initialize(migration, connection = nil)
       @intersection = migration.intersection
       @origin = migration.origin
       @destination = migration.destination
       @connection = connection
-      @retry_options = options[:retriable] || {}
     end
 
     def entangle
@@ -86,14 +87,14 @@ module Lhm
 
     def before
       entangle.each do |stmt|
-        @connection.execute(stmt, should_retry: true, retry_options: @retry_options)
+        @connection.execute(stmt, should_retry: true, log_prefix: LOG_PREFIX)
       end
       Lhm.logger.info("Created triggers on #{@origin.name}")
     end
 
     def after
       untangle.each do |stmt|
-        @connection.execute(stmt, should_retry: true, retry_options: @retry_options)
+        @connection.execute(stmt, should_retry: true, log_prefix: LOG_PREFIX)
       end
       Lhm.logger.info("Dropped triggers on #{@origin.name}")
     end
