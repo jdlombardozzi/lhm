@@ -92,7 +92,7 @@ describe Lhm::Connection do
 
   it "Queries should be tagged with ProxySQL tag if reconnect_with_consistent_host is enabled" do
     ar_connection = mock()
-    ar_connection.expects(:public_send).with(:select_value, "#{Lhm::ProxySQLHelper::ANNOTATION} SHOW TABLES").returns("dummy")
+    ar_connection.expects(:public_send).with(:select_value, "SHOW TABLES #{Lhm::ProxySQLHelper::ANNOTATION}").returns("dummy")
     ar_connection.stubs(:execute).times(4).returns([["dummy"]])
     ar_connection.stubs(:active?).returns(true)
 

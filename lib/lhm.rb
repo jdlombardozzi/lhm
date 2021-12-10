@@ -48,8 +48,6 @@ module Lhm
   #   to set this option (see SqlHelper#supports_atomic_switch?)
   # @option options [Boolean] :reconnect_with_consistent_host
   #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
-  # @option options [Boolean] :disable_proxysql_tags
-  #   Active / Deactivate ProxySQL tags to be added to queries (if used with Marginalia or ActiveRecord QueryLogs)
   # @yield [Migrator] Yielded Migrator object records the changes
   # @return [Boolean] Returns true if the migration finishes
   # @raise [Error] Raises Lhm::Error in case of a error and aborts the migration
@@ -147,15 +145,12 @@ module Lhm
   def with_flags(options)
     old_flags = {
       reconnect_with_consistent_host: Lhm.connection.reconnect_with_consistent_host,
-      disable_proxysql_tags: ProxySQLHelper.disable_tags
     }
 
     Lhm.connection.reconnect_with_consistent_host = options[:reconnect_with_consistent_host] || false
-    ProxySQLHelper.disable_tags = options[:disable_proxysql_tags] || false
 
     yield
   ensure
     Lhm.connection.reconnect_with_consistent_host = old_flags[:reconnect_with_consistent_host]
-    ProxySQLHelper.disable_tags = old_flags[:disable_proxysql_tags]
   end
 end

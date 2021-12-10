@@ -655,21 +655,6 @@ describe Lhm do
           value(count_all(:users)).must_equal(100)
         end
       end
-
-      it "should not tag the queries with ProxySQL's tags if requested" do
-        ActiveRecord::Base.logger = Logger.new(@logs)
-
-        Lhm.change_table(:users, atomic_switch: false, disable_proxysql_tags: true) do |t|
-          t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL")
-          t.ddl("ALTER TABLE #{t.name} DROP PRIMARY KEY, ADD PRIMARY KEY (username, id)")
-          t.ddl("ALTER TABLE #{t.name} ADD INDEX (id)")
-          t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL AUTO_INCREMENT")
-        end
-
-        log_lines = @logs.string.split("\n")
-
-        assert log_lines.none?{ |line| line.include?("/*maintenance:lhm*/")}
-      end
     end
   end
 end

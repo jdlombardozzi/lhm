@@ -113,8 +113,8 @@ tables must be cleaned up.
 LHM can recover from connection loss. However, when used in conjunction with ProxySQL, there are multiple ways that
 connection loss could induce data loss (if triggered by a failover). Therefore  it will perform additional checks to
 ensure that the MySQL host stays consistent across the schema migrations if the feature is enabled. 
-This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL (these tags 
-can be disabled).  However, to get this feature working, a new ProxySQL query rule must be added.
+This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL.
+However, to get this feature working, a new ProxySQL query rule must be added.
 ```cnf
 {
   rule_id = <rule id>
@@ -153,13 +153,6 @@ end
 ```
 **Note**: This feature is disabled by default
 
-The annotations mentioned above can also be disabled if ActiveRecord's QueryLogs or Marginalia are enabled . This is done by providing
-the following option to `Lhm.change_table`. 
-```ruby
- Lhm.change_table(..., options: {disable_proxysql_tags: true}) do |t|
-  ...
-end
-```
 ## Throttler
 
 LHM uses a throttling mechanism to read data in your original table. By default, 2,000 rows are read each 0.1 second. If you want to change that behaviour, you can pass an instance of a throttler with the `throttler` option. In this example, 1,000 rows will be read with a 10 second delay between each processing:
