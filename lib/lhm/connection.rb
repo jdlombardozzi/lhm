@@ -1,14 +1,15 @@
 require 'delegate'
+require 'forwardable'
 require 'lhm/sql_retry'
 
 module Lhm
     # Lhm::Connection inherits from SingleDelegator. It will forward any unknown method calls to the ActiveRecord
     # connection.
   class Connection < SimpleDelegator
+    extend Forwardable
 
-    # These attributes have writers defined in this file
-    attr_reader :retry_config
     alias ar_connection __getobj__
+    def_delegators :@sql_retry, :reconnect_with_consistent_host, :reconnect_with_consistent_host=, :retry_config=
 
     def initialize(connection:, options: {})
       @sql_retry = Lhm::SqlRetry.new(
@@ -27,16 +28,6 @@ module Lhm
       @sql_retry.connection = connection
       # Sets connection as the delegated object
       __setobj__(connection)
-    end
-
-    # Accessors for SQLRetry options
-    def reconnect_with_consistent_host=(reconnect)
-      @sql_retry.reconnect_with_consistent_host = reconnect
-    end
-
-    def retry_config=(config)
-      @retry_config = config
-      @sql_retry.retry_config = config
     end
 
     # ActiveRecord::Base overridden methods to incorporate custom retry logic
