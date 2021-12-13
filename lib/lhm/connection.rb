@@ -8,8 +8,11 @@ module Lhm
   class Connection < SimpleDelegator
     extend Forwardable
 
-    alias ar_connection __getobj__
+    # Will delegate the following function to @sql_retry object, while leaving them accessible from the Lhm::Connection
+    # object
     def_delegators :@sql_retry, :reconnect_with_consistent_host, :reconnect_with_consistent_host=, :retry_config=
+
+    alias ar_connection __getobj__
 
     def initialize(connection:, options: {})
       @sql_retry = Lhm::SqlRetry.new(
