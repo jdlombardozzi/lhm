@@ -13,6 +13,8 @@ module Lhm
 
     attr_reader :connection
 
+    LOG_PREFIX = "Chunker"
+
     # Copy from origin to destination in chunks of size `stride`.
     # Use the `throttler` class to sleep between each stride.
     def initialize(migration, connection = nil, options = {})
@@ -31,9 +33,7 @@ module Lhm
       @retry_options = options[:retriable] || {}
       @retry_helper = SqlRetry.new(
         @connection,
-        retry_options: {
-          log_prefix: "Chunker"
-        }.merge!(@retry_options)
+        retry_options: @retry_options
       )
     end
 
@@ -79,7 +79,7 @@ module Lhm
     private
 
     def raise_on_non_pk_duplicate_warning
-      @connection.execute("show warnings", should_retry: true, retry_options: @retry_options).each do |level, code, message|
+      @connection.execute("show warnings", should_retry: true, log_prefix: LOG_PREFIX).each do |level, code, message|
         unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
           m = "Unexpected warning found for inserted row: #{message}"
           Lhm.logger.warn(m)
@@ -94,14 +94,14 @@ module Lhm
 
     def verify_can_run
       return unless @verifier
-      @retry_helper.with_retries(@retry_options) do |retriable_connection|
+      @retry_helper.with_retries(log_prefix: LOG_PREFIX) do |retriable_connection|
         raise "Verification failed, aborting early" if !@verifier.call(retriable_connection)
       end
     end
 
     def upper_id(next_id, stride)
       sql = "select id from `#{ @migration.origin_name }` where id >= #{ next_id } order by id limit 1 offset #{ stride - 1}"
-      top = @connection.select_value(sql, should_retry: true, retry_options: @retry_options)
+      top = @connection.select_value(sql, should_retry: true, log_prefix: LOG_PREFIX)
 
       [top ? top.to_i : @limit, @limit].min
     end

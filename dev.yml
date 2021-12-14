@@ -5,7 +5,7 @@ up:
           or: [mysql@5.7]
           conflicts: [shopify/shopify/mysql-client, mysql-connector-c, mysql, mysql-client]
       - wget
-  - ruby: 2.7.0
+  - ruby: 2.7.5
   - bundler
   - custom:
       name: Get Appraisal gems
@@ -31,7 +31,7 @@ commands:
       if [[ $# -eq 0 ]]; then
         bundle exec rake unit && bundle exec rake integration
       else
-        bundle exec rake dev TEST="$@"
+        SINGLE_TEST="$@" bundle exec rake dev
       fi
   appraisals: bundle exec appraisal rake specs
   cov: rm -rf coverage; COV=1 bundle exec rake unit && bundle exec rake integration; open coverage/index.html

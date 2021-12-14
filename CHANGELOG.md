@@ -1,3 +1,11 @@
+# 3.5.4 (Dec, 2021)
+* Refactored the way options are handled internally. Code is now much clearer to understand
+* Removed optional connection_options from `Lhm.setup` and `Lhm.connection`
+* Option `reconnect_with_consistent_host` will now be provided with `options` for `Lhm.change_table`
+
+# 3.5.3 (Dec, 2021)
+* Adds ProxySQL comments at the end of query to accommodate for internal tool's requirements
+
 # 3.5.2 (Dec, 2021)
 * Fixed error on undefined connection, when calling `Lhm.connection` without calling `Lhm.setup` first
 * Changed `Lhm.connection.connection` to `lhm.connection.ar_connection` for increased clarity and readability

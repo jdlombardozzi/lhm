@@ -113,7 +113,7 @@ tables must be cleaned up.
 LHM can recover from connection loss. However, when used in conjunction with ProxySQL, there are multiple ways that
 connection loss could induce data loss (if triggered by a failover). Therefore  it will perform additional checks to
 ensure that the MySQL host stays consistent across the schema migrations if the feature is enabled. 
-This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL. 
+This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL.
 However, to get this feature working, a new ProxySQL query rule must be added.
 ```cnf
 {
@@ -145,9 +145,11 @@ forwarded to the right target.
 ```
 
 Once these changes are added to the ProxySQL configuration (either through `.cnf` or dynamically through the admin interface), 
-the feature can be enabled. This is done by adding this flag when doing the initial setup:
+the feature can be enabled. This is done by adding this flag when providing options to the migration:
 ```ruby
- Lhm.setup(connection, options: {reconnect_with_consistent_host: true})
+ Lhm.change_table(..., options: {reconnect_with_consistent_host: true}) do |t|
+  ...
+end
 ```
 **Note**: This feature is disabled by default
 

@@ -142,7 +142,7 @@ describe Lhm::Throttler::Slave do
         Lhm::Throttler::Slave.any_instance.stubs(:config).returns([])
 
         slave = Lhm::Throttler::Slave.new('slave', @dummy_mysql_client_config)
-        assert_send([Lhm.logger, :info, "Unable to connect and/or query slave: error"])
+        Logger.any_instance.expects(:info).with("Unable to connect and/or query slave: Can't connect to MySQL server")
         assert_equal(0, slave.lag)
       end
     end

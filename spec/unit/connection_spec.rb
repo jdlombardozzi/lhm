@@ -15,9 +15,13 @@ describe Lhm::Connection do
     ar_connection.stubs(:execute).raises(LOCK_WAIT).then.returns(true)
     ar_connection.stubs(:active?).returns(true)
 
-    connection = Lhm::Connection.new(connection: ar_connection)
+    connection = Lhm::Connection.new(connection: ar_connection, options: {
+      retriable: {
+        base_interval: 0
+      }
+    })
 
-    connection.execute("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0 })
+    connection.execute("SHOW TABLES", should_retry: true)
 
     log_messages = @logs.string.split("\n")
     assert_equal(1, log_messages.length)
@@ -31,9 +35,14 @@ describe Lhm::Connection do
                  .then.returns(true)
     ar_connection.stubs(:active?).returns(true)
 
-    connection = Lhm::Connection.new(connection: ar_connection)
+    connection = Lhm::Connection.new(connection: ar_connection, options: {
+      retriable: {
+        base_interval: 0,
+        tries: 3
+      }
+    })
 
-    connection.execute("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0, tries: 3 })
+    connection.execute("SHOW TABLES", should_retry: true)
 
     log_messages = @logs.string.split("\n")
     assert_equal(2, log_messages.length)
@@ -46,9 +55,14 @@ describe Lhm::Connection do
                  .then.returns(1)
     ar_connection.stubs(:active?).returns(true)
 
-    connection = Lhm::Connection.new(connection: ar_connection)
+    connection = Lhm::Connection.new(connection: ar_connection, options: {
+      retriable: {
+        base_interval: 0,
+        tries: 3
+      }
+    })
 
-    val = connection.update("SHOW TABLES", should_retry: true, retry_options:{ base_interval: 0, tries: 3 })
+    val = connection.update("SHOW TABLES", should_retry: true)
 
     log_messages = @logs.string.split("\n")
     assert_equal val, 1
@@ -62,24 +76,35 @@ describe Lhm::Connection do
                  .then.returns("dummy")
     ar_connection.stubs(:active?).returns(true)
 
-    connection = Lhm::Connection.new(connection: ar_connection)
+    connection = Lhm::Connection.new(connection: ar_connection, options: {
+      retriable: {
+        base_interval: 0,
+        tries: 3
+      }
+    })
 
-    val = connection.select_value("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0, tries: 3 })
+    val = connection.select_value("SHOW TABLES", should_retry: true)
 
     log_messages = @logs.string.split("\n")
     assert_equal val, "dummy"
     assert_equal(2, log_messages.length)
   end
 
-  it "Queries should be tagged with ProxySQL tag if requested" do
+  it "Queries should be tagged with ProxySQL tag if reconnect_with_consistent_host is enabled" do
     ar_connection = mock()
     ar_connection.expects(:public_send).with(:select_value, "SHOW TABLES #{Lhm::ProxySQLHelper::ANNOTATION}").returns("dummy")
     ar_connection.stubs(:execute).times(4).returns([["dummy"]])
     ar_connection.stubs(:active?).returns(true)
 
-    connection = Lhm::Connection.new(connection: ar_connection, options: { reconnect_with_consistent_host: true })
+    connection = Lhm::Connection.new(connection: ar_connection, options: {
+      reconnect_with_consistent_host: true,
+      retriable: {
+        base_interval: 0,
+        tries: 3
+      }
+    })
 
-    val = connection.select_value("SHOW TABLES", should_retry: true, retry_options: { base_interval: 0, tries: 3 })
+    val = connection.select_value("SHOW TABLES", should_retry: true)
 
     assert_equal val, "dummy"
   end

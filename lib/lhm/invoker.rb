@@ -16,8 +16,8 @@ module Lhm
   class Invoker
     include SqlHelper
     LOCK_WAIT_TIMEOUT_DELTA = 10
-    INNODB_LOCK_WAIT_TIMEOUT_MAX=1073741824.freeze # https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_lock_wait_timeout
-    LOCK_WAIT_TIMEOUT_MAX=31536000.freeze # https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
+    INNODB_LOCK_WAIT_TIMEOUT_MAX = 1073741824.freeze # https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_lock_wait_timeout
+    LOCK_WAIT_TIMEOUT_MAX = 31536000.freeze # https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
 
     attr_reader :migrator, :connection
 
@@ -49,7 +49,7 @@ module Lhm
       normalize_options(options)
       set_session_lock_wait_timeouts
       migration = @migrator.run
-      entangler = Entangler.new(migration, @connection, options)
+      entangler = Entangler.new(migration, @connection)
 
       entangler.run do
         options[:verifier] ||= Proc.new { |conn| triggers_still_exist?(conn, entangler) }
@@ -89,6 +89,8 @@ module Lhm
       else
         options[:throttler] = Lhm.throttler
       end
+
+      Lhm.connection.retry_config = options[:retriable] || {}
 
     rescue => e
       Lhm.logger.error "LHM run failed with exception=#{e.class} message=#{e.message}"

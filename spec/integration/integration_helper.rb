@@ -62,18 +62,16 @@ module IntegrationHelper
     )
   end
 
-  def connect_master_with_toxiproxy!(with_retry: false)
+  def connect_master_with_toxiproxy!
     connect!(
       '127.0.0.1',
       $db_config['master_toxic']['port'],
       $db_config['master_toxic']['user'],
-      $db_config['master_toxic']['password'],
-      with_retry)
+      $db_config['master_toxic']['password'])
   end
 
-  def connect!(hostname, port, user, password, with_retry = false)
-    adapter = ar_conn(hostname, port, user, password)
-    Lhm.setup(adapter,{reconnect_with_consistent_host: with_retry})
+  def connect!(hostname, port, user, password)
+    Lhm.setup(ar_conn(hostname, port, user, password))
     unless defined?(@@cleaned_up)
       Lhm.cleanup(true)
       @@cleaned_up  = true

@@ -173,6 +173,9 @@ describe Lhm::Chunker do
       printer.expect(:notify, :return_value, [Integer, Integer])
       printer.expect(:end, :return_value, [])
 
+      Lhm::Throttler::Slave.any_instance.stubs(:slave_hosts).returns(['127.0.0.1'])
+      Lhm::Throttler::SlaveLag.any_instance.stubs(:master_slave_hosts).returns(['127.0.0.1'])
+
       Lhm::Chunker.new(
         @migration, connection, { throttler: Lhm::Throttler::SlaveLag.new(stride: 100), printer: printer }
       ).run
@@ -215,17 +218,16 @@ describe Lhm::Chunker do
       printer.expects(:verify)
       printer.expects(:end)
 
-      throttler = Lhm::Throttler::SlaveLag.new(stride: 10, allowed_lag: 0)
+      Lhm::Throttler::Slave.any_instance.stubs(:slave_hosts).returns(['127.0.0.1'])
+      Lhm::Throttler::SlaveLag.any_instance.stubs(:master_slave_hosts).returns(['127.0.0.1'])
 
-      def throttler.slave_hosts
-        ['127.0.0.1']
-      end
+      throttler = Lhm::Throttler::SlaveLag.new(stride: 10, allowed_lag: 0)
 
       if master_slave_mode?
         def throttler.slave_connection(slave)
           config = ActiveRecord::Base.connection_pool.db_config.configuration_hash.dup
           config[:host] = slave
-          config[:port] = 3307
+          config[:port] = 33007
           ActiveRecord::Base.send('mysql2_connection', config)
         end
       end

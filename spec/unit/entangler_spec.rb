@@ -69,9 +69,15 @@ describe Lhm::Entangler do
                        .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')
       ar_connection.stubs(:active?).returns(true)
 
-      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
+      connection = Lhm::Connection.new(connection: ar_connection, options: {
+        reconnect_with_consistent_host: true,
+        retriable: {
+          base_interval: 0,
+          tries: tries
+        }
+      })
 
-      @entangler = Lhm::Entangler.new(@migration, connection, retriable: {base_interval: 0, tries: tries})
+      @entangler = Lhm::Entangler.new(@migration, connection)
 
       assert_raises(Mysql2::Error) { @entangler.before }
     end
@@ -83,9 +89,14 @@ describe Lhm::Entangler do
                    .then
                    .raises(Mysql2::Error, 'The MySQL server is running with the --read-only option so it cannot execute this statement.')
       ar_connection.stubs(:active?).returns(true)
-      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
+      connection = Lhm::Connection.new(connection: ar_connection, options: {
+        reconnect_with_consistent_host: true,
+        retriable: {
+          base_interval: 0
+        },
+      })
 
-      @entangler = Lhm::Entangler.new(@migration, connection, retriable: { base_interval: 0 })
+      @entangler = Lhm::Entangler.new(@migration, connection)
       assert_raises(Mysql2::Error) { @entangler.before }
     end
 
@@ -99,9 +110,14 @@ describe Lhm::Entangler do
                    .returns([["dummy"]])
       ar_connection.stubs(:active?).returns(true)
 
-      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
+      connection = Lhm::Connection.new(connection: ar_connection, options: {
+        reconnect_with_consistent_host: true,
+        retriable: {
+          base_interval: 0
+        },
+      })
 
-      @entangler = Lhm::Entangler.new(@migration, connection, retriable: {base_interval: 0})
+      @entangler = Lhm::Entangler.new(@migration, connection)
 
       assert @entangler.before
     end
@@ -126,9 +142,15 @@ describe Lhm::Entangler do
                    .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')  # final error
       ar_connection.stubs(:active?).returns(true)
 
-      connection = Lhm::Connection.new(connection: ar_connection, options: {reconnect_with_consistent_host: true})
+      connection = Lhm::Connection.new(connection: ar_connection, options: {
+        reconnect_with_consistent_host: true,
+        retriable: {
+          tries: 5,
+          base_interval: 0
+        },
+      })
 
-      @entangler = Lhm::Entangler.new(@migration, connection, retriable: {tries: 5, base_interval: 0})
+      @entangler = Lhm::Entangler.new(@migration, connection)
 
       assert_raises(Mysql2::Error) { @entangler.before }
     end

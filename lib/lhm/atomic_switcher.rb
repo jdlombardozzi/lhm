@@ -16,12 +16,13 @@ module Lhm
 
     attr_reader :connection
 
-    def initialize(migration, connection = nil, options={})
+    LOG_PREFIX = "AtomicSwitcher"
+
+    def initialize(migration, connection = nil)
       @migration = migration
       @connection = connection
       @origin = migration.origin
       @destination = migration.destination
-      @retry_options = options[:retriable] || {}
     end
 
     def atomic_switch
@@ -39,7 +40,7 @@ module Lhm
     private
 
     def execute
-      @connection.execute(atomic_switch, should_retry: true, retry_options: @retry_options)
+      @connection.execute(atomic_switch, should_retry: true, log_prefix: LOG_PREFIX)
     end
   end
 end
