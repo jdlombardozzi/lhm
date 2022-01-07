@@ -140,9 +140,10 @@ module Lhm
             log_with_prefix("Reconnected to wrong host. Started migration on: #{@initial_hostname} (server_id: #{@initial_server_id}), but reconnected to: #{hostname} (server_id: #{server_id}).", :error)
             return false
           end
-        rescue ActiveRecord::ConnectionNotEstablished => e
+        rescue StandardError => e
           # Retry if ActiveRecord cannot reach host
           next if /Lost connection to MySQL server at 'reading initial communication packet'/ === e.message
+          log_with_prefix("Encountered error: [#{e.class}] #{e.message}. Will stop reconnection procedure.", :info)
           return false
         end
       end

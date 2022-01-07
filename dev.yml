@@ -40,3 +40,6 @@ commands:
     run: docker-compose logs -f
   clear:
     run: docker-compose rm -v -s -f && docker-compose up -d && ./scripts/helpers/wait-for-dbs.sh
+  pre-publish:
+    # Ensures all Gemfile.lock are sync with the new version in `lhm/version.rb` and runs appraisals
+    run: bundle install && bundle exec appraisal install && bundle exec appraisal rake specs
