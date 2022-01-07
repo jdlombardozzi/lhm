@@ -1,3 +1,6 @@
+# 3.5.5 (Jan, 2022)
+* Fix error where from Config shadowing which would cause LHM to abort on reconnect (https://github.com/Shopify/lhm/pull/128)
+
 # 3.5.4 (Dec, 2021)
 * Refactored the way options are handled internally. Code is now much clearer to understand
 * Removed optional connection_options from `Lhm.setup` and `Lhm.connection`

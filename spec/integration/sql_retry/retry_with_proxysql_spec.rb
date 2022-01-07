@@ -38,7 +38,7 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
       end
     end
     assert_equal Lhm::Error, e.class
-    assert_match(/LHM tried the reconnection procedure but failed. Latest error:/, e.message)
+    assert_match(/LHM tried the reconnection procedure but failed. Aborting/, e.message)
   end
 
   it "Will retry until connection is achieved" do
@@ -61,6 +61,7 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
   it "Will abort if new writer is not same host" do
     # The hostname will be constant before the blip
     Lhm::SqlRetry.any_instance.stubs(:hostname).returns("mysql-1").then.returns("mysql-2")
+    Lhm::SqlRetry.any_instance.stubs(:server_id).returns(1).then.returns(2)
 
     # Need new instance for stub to take into effect
     lhm_retry = Lhm::SqlRetry.new(@connection, retry_options: {},
@@ -76,12 +77,12 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
     end
 
     assert_equal e.class, Lhm::Error
-    assert_match(/LHM tried the reconnection procedure but failed. Latest error: Reconnected to wrong host/, e.message)
+    assert_match(/LHM tried the reconnection procedure but failed. Aborting/, e.message)
 
     logs = @logger.string.split("\n")
 
     assert logs.first.include?("Lost connection to MySQL, will retry to connect to same host")
-    assert logs.last.include?("Lost connection to MySQL server at 'reading initial communication packet")
+    assert logs.last.include?("Reconnected to wrong host. Started migration on: mysql-1 (server_id: 1), but reconnected to: mysql-2 (server_id: 2).")
   end
 
   it "Will abort if failover happens (mimicked with proxySQL)" do
@@ -98,11 +99,11 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
     end
 
     assert_equal e.class, Lhm::Error
-    assert_match(/LHM tried the reconnection procedure but failed. Latest error: Reconnected to wrong host/, e.message)
+    assert_match(/LHM tried the reconnection procedure but failed. Aborting/, e.message)
 
     logs = @logger.string.split("\n")
 
     assert logs.first.include?("Lost connection to MySQL, will retry to connect to same host")
-    assert logs.last.include?("Lost connection to MySQL server at 'reading initial communication packet")
+    assert logs.last.include?("Reconnected to wrong host. Started migration on: mysql-1 (server_id: 1), but reconnected to: mysql-2 (server_id: 2).")
   end
 end
