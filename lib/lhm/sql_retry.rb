@@ -18,15 +18,18 @@ module Lhm
   class SqlRetry
     RECONNECT_SUCCESSFUL_MESSAGE = "LHM successfully reconnected to initial host:"
     CLOUDSQL_VERSION_COMMENT = "(Google)"
+    # Will retry for 120 seconds (approximately, since connecting takes time).
+    RECONNECT_RETRY_MAX_ITERATION = 120
+    RECONNECT_RETRY_INTERVAL = 1
+    # Will abort the LHM if it had to reconnect more than 25 times in a single run (indicator that there might be
+    # something wrong with the network and would be better to run the LHM at a later time).
+    RECONNECTION_MAXIMUM = 25
 
     MYSQL_VAR_NAMES = {
       hostname: "@@global.hostname",
       server_id: "@@global.server_id",
       version_comment: "@@version_comment",
     }
-
-    # This internal error is used to trigger retries from the parent Retriable.retriable in #with_retries
-    class ReconnectToHostSuccessful < Lhm::Error; end
 
     def initialize(connection, retry_options: {}, reconnect_with_consistent_host: false)
       @connection = connection
@@ -38,11 +41,14 @@ module Lhm
     def with_retries(log_prefix: nil)
       @log_prefix = log_prefix || "" # No prefix. Just logs
 
+      # Amount of time LHM had to reconnect. Aborting if more than RECONNECTION_MAXIMUM
+      reconnection_counter = 0
+
       Retriable.retriable(@retry_config) do
         # Using begin -> rescue -> end for Ruby 2.4 compatibility
         begin
           if @reconnect_with_consistent_host
-            raise Lhm::Error.new("Could not reconnected to initial MySQL host. Aborting to avoid data-loss") unless same_host_as_initial?
+            raise Lhm::Error.new("MySQL host has changed since the start of the LHM. Aborting to avoid data-loss") unless same_host_as_initial?
           end
 
           yield(@connection)
@@ -51,7 +57,18 @@ module Lhm
           # The error will be raised the connection is still active (i.e. no need to reconnect) or if the connection is
           # dead (i.e. not active) and @reconnect_with_host is false (i.e. instructed not to reconnect)
           raise e if @connection.active? || (!@connection.active? && !@reconnect_with_consistent_host)
-          reconnect_with_host_check! if @reconnect_with_consistent_host
+
+          # Lhm could be stuck in a weird state where it loses connection, reconnects and re looses-connection instantly
+          # after, creating an infinite loop (because of the usage of `retry`). Hence, abort after 25 reconnections
+          raise Lhm::Error.new("LHM reached host reconnection max of #{RECONNECTION_MAXIMUM} times. " \
+            "Please try again later.") if reconnection_counter > RECONNECTION_MAXIMUM
+
+          reconnection_counter += 1
+          if reconnect_with_host_check!
+            retry
+          else
+            raise Lhm::Error.new("LHM tried the reconnection procedure but failed. Aborting")
+          end
         end
       end
     end
@@ -105,34 +122,31 @@ module Lhm
 
     def reconnect_with_host_check!
       log_with_prefix("Lost connection to MySQL, will retry to connect to same host")
-      begin
-        Retriable.retriable(host_retry_config) do
+
+      RECONNECT_RETRY_MAX_ITERATION.times do
+        begin
+          sleep(RECONNECT_RETRY_INTERVAL)
+
           # tries to reconnect. On failure will trigger a retry
           @connection.reconnect!
 
           if same_host_as_initial?
             # This is not an actual error, but controlled way to get the parent `Retriable.retriable` to retry
             # the statement that failed (since the Retriable gem only retries on errors).
-            raise ReconnectToHostSuccessful.new("LHM successfully reconnected to initial host: #{@initial_hostname} (server_id: #{@initial_server_id})")
+            log_with_prefix("LHM successfully reconnected to initial host: #{@initial_hostname} (server_id: #{@initial_server_id})")
+            return true
           else
             # New Master --> abort LHM (reconnecting will not change anything)
-            raise Lhm::Error.new("Reconnected to wrong host. Started migration on: #{@initial_hostname} (server_id: #{@initial_server_id}), but reconnected to: #{hostname} (server_id: #{@initial_server_id}).")
+            log_with_prefix("Reconnected to wrong host. Started migration on: #{@initial_hostname} (server_id: #{@initial_server_id}), but reconnected to: #{hostname} (server_id: #{server_id}).", :error)
+            return false
           end
+        rescue ActiveRecord::ConnectionNotEstablished => e
+          # Retry if ActiveRecord cannot reach host
+          next if /Lost connection to MySQL server at 'reading initial communication packet'/ === e.message
+          return false
         end
-      rescue StandardError => e
-        # The parent Retriable.retriable is configured to retry if it encounters an error with the success message.
-        # Therefore, if the connection is re-established successfully AND the host is the same, LHM can retry the query
-        # that originally failed.
-        raise e if reconnect_successful?(e)
-        # If the connection was not successful, the parent retriable will raise any error that originated from the
-        # `@connection.reconnect!`
-        # Therefore, this error will cause the LHM to abort
-        raise Lhm::Error.new("LHM tried the reconnection procedure but failed. Latest error: #{e.message}")
       end
-    end
-
-    def reconnect_successful?(e)
-      e.is_a?(ReconnectToHostSuccessful)
+      false
     end
 
     # For a full list of configuration options see https://github.com/kamui/retriable
@@ -149,35 +163,10 @@ module Lhm
             /Unknown MySQL server host/,
             /connection is locked to hostgroup/,
             /The MySQL server is running with the --read-only option so it cannot execute this statement/,
-          ],
-          ReconnectToHostSuccessful => [
-            /#{RECONNECT_SUCCESSFUL_MESSAGE}/
           ]
         },
         multiplier: 1, # each successive interval grows by this factor
         base_interval: 1, # the initial interval in seconds between tries.
-        tries: 20, # Number of attempts to make at running your code block (includes initial attempt).
-        rand_factor: 0, # percentage to randomize the next retry interval time
-        max_elapsed_time: Float::INFINITY, # max total time in seconds that code is allowed to keep being retried
-        on_retry: Proc.new do |exception, try_number, total_elapsed_time, next_interval|
-          if reconnect_successful?(exception)
-            log_with_prefix("#{exception.message} -- triggering retry", :info)
-          else
-            log_with_prefix("#{exception.class}: '#{exception.message}' - #{try_number} tries in #{total_elapsed_time} seconds and #{next_interval} seconds until the next try.", :error)
-          end
-        end
-      }.freeze
-    end
-
-    def host_retry_config
-      {
-        on: {
-          StandardError => [
-            /Lost connection to MySQL server at 'reading initial communication packet'/
-          ]
-        },
-        multiplier: 1, # each successive interval grows by this factor
-        base_interval: 0.25, # the initial interval in seconds between tries.
         tries: 20, # Number of attempts to make at running your code block (includes initial attempt).
         rand_factor: 0, # percentage to randomize the next retry interval time
         max_elapsed_time: Float::INFINITY, # max total time in seconds that code is allowed to keep being retried

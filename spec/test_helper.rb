@@ -28,6 +28,9 @@ logger = Logger.new STDOUT
 logger.level = Logger::WARN
 Lhm.logger = logger
 
+# Want test to be efficient without having to wait the normal value of 120s
+Lhm::SqlRetry::RECONNECT_RETRY_MAX_ITERATION = 4
+
 def without_verbose(&block)
   old_verbose, $VERBOSE = $VERBOSE, nil
   yield
