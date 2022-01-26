@@ -9,6 +9,24 @@ describe Lhm::Throttler::ThreadsRunning do
     @throttler = Lhm::Throttler::ThreadsRunning.new
   end
 
+  describe '#stride' do
+    describe 'default value' do
+      it 'is present' do
+        assert_equal(@throttler.stride, 2_000)
+      end
+    end
+
+    describe 'when set by user' do
+      before do
+        @throttler = Lhm::Throttler::ThreadsRunning.new(stride: 100_500)
+      end
+
+      it 'returns that value' do
+        assert_equal(@throttler.stride, 100_500)
+      end
+    end
+  end
+
   describe '#throttle_seconds' do
     describe 'with no mysql activity' do
       before do
