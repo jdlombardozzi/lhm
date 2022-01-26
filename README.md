@@ -57,7 +57,7 @@ a single integer numeric key column named `id`.
 
 ## Installation
 
-Install it via `gem install lhm` or by adding `gem "lhm"` to your `Gemfile`.
+Install it via `gem install lhm-shopify` or by adding `gem "lhm-shopify"` to your `Gemfile`.
 
 ## Usage
 
