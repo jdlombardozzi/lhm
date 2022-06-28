@@ -327,7 +327,7 @@ The license is included as [LICENSE](LICENSE) in this directory.
   * [Twitter][2]
   * [pt-online-schema-change][3]
 
-[0]: http://openarkkit.googlecode.com
+[0]: https://shlomi-noach.github.io/openarkkit/introduction.html
 [1]: http://www.facebook.com/note.php?note\_id=430801045932
 [2]: https://github.com/freels/table_migrator
 [3]: http://www.percona.com/doc/percona-toolkit/2.1/pt-online-schema-change.html
