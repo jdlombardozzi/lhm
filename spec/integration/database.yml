@@ -3,7 +3,7 @@ master:
   user: root
   password: password
   port: 33006
-slave:
+replica:
   host: mysql-2
   user: root
   password: password

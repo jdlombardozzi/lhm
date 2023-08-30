@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__)) + '/../unit_helper'
 
-require 'lhm/throttler/slave_lag'
+require 'lhm/throttler/replica_lag'
 
 describe Lhm::Throttler do
   include UnitHelper
@@ -32,7 +32,7 @@ describe Lhm::Throttler do
   end
 end
 
-describe Lhm::Throttler::Slave do
+describe Lhm::Throttler::Replica do
   include UnitHelper
 
   before :each do
@@ -53,21 +53,21 @@ describe Lhm::Throttler::Slave do
 
     describe 'on connection error' do
       it 'logs and returns nil' do
-        assert_nil(Lhm::Throttler::Slave.new('slave', @dummy_mysql_client_config).connection)
+        assert_nil(Lhm::Throttler::Replica.new('replica', @dummy_mysql_client_config).connection)
 
         log_messages = @logs.string.lines
         assert_equal(2, log_messages.length)
-        assert log_messages[0].include? "Connecting to slave on database: db"
-        assert log_messages[1].include? "Error connecting to slave: Unknown MySQL server host 'slave'"
+        assert log_messages[0].include? "Connecting to replica on database: db"
+        assert log_messages[1].include? "Error connecting to replica: Unknown MySQL server host 'replica'"
       end
     end
 
     describe 'with proper config' do
       it "creates a new Mysql2::Client" do
-        expected_config = { username: 'user', password: 'pw', database: 'db', host: 'slave' }
+        expected_config = { username: 'user', password: 'pw', database: 'db', host: 'replica' }
         Mysql2::Client.stubs(:new).with(expected_config).returns(mock())
 
-        assert Lhm::Throttler::Slave.new('slave', @dummy_mysql_client_config).connection
+        assert Lhm::Throttler::Replica.new('replica', @dummy_mysql_client_config).connection
       end
     end
 
@@ -82,11 +82,11 @@ describe Lhm::Throttler::Slave do
 
         Mysql2::Client.stubs(:new).returns(mock())
 
-        assert Lhm::Throttler::Slave.new('slave').connection
+        assert Lhm::Throttler::Replica.new('replica').connection
 
         log_messages = @logs.string.lines
         assert_equal(1, log_messages.length)
-        assert log_messages[0].include? "Connecting to slave on database: db"
+        assert log_messages[0].include? "Connecting to replica on database: db"
       end
     end
   end
@@ -95,16 +95,16 @@ describe Lhm::Throttler::Slave do
     before do
       class Connection
         def self.query(query)
-          if query == Lhm::Throttler::Slave::SQL_SELECT_MAX_SLAVE_LAG
+          if query == Lhm::Throttler::Replica::SQL_SELECT_MAX_REPLICA_LAG
             [{ 'Seconds_Behind_Master' => 20 }]
-          elsif query == Lhm::Throttler::Slave::SQL_SELECT_SLAVE_HOSTS
+          elsif query == Lhm::Throttler::Replica::SQL_SELECT_REPLICA_HOSTS
             [{ 'host' => '1.1.1.1:80' }]
           end
         end
       end
 
-      @slave = Lhm::Throttler::Slave.new('slave', @dummy_mysql_client_config)
-      @slave.instance_variable_set(:@connection, Connection)
+      @replica = Lhm::Throttler::Replica.new('replica', @dummy_mysql_client_config)
+      @replica.instance_variable_set(:@connection, Connection)
 
       class StoppedConnection
         def self.query(query)
@@ -112,54 +112,54 @@ describe Lhm::Throttler::Slave do
         end
       end
 
-      @stopped_slave = Lhm::Throttler::Slave.new('stopped_slave', @dummy_mysql_client_config)
-      @stopped_slave.instance_variable_set(:@connection, StoppedConnection)
+      @stopped_replica = Lhm::Throttler::Replica.new('stopped_replica', @dummy_mysql_client_config)
+      @stopped_replica.instance_variable_set(:@connection, StoppedConnection)
     end
 
     describe "#lag" do
-      it "returns the slave lag" do
-        assert_equal(20, @slave.lag)
+      it "returns the replica lag" do
+        assert_equal(20, @replica.lag)
       end
     end
 
-    describe "#lag with a stopped slave" do
-      it "returns 0 slave lag" do
-        assert_equal(0, @stopped_slave.lag)
+    describe "#lag with a stopped replica" do
+      it "returns 0 replica lag" do
+        assert_equal(0, @stopped_replica.lag)
       end
     end
 
-    describe "#slave_hosts" do
+    describe "#replica_hosts" do
       it "returns the hosts" do
-        assert_equal(['1.1.1.1'], @slave.slave_hosts)
+        assert_equal(['1.1.1.1'], @replica.replica_hosts)
       end
     end
 
     describe "#lag on connection error" do
-      it "logs and returns 0 slave lag" do
+      it "logs and returns 0 replica lag" do
         client = mock()
         client.stubs(:query).raises(Mysql2::Error, "Can't connect to MySQL server")
-        Lhm::Throttler::Slave.any_instance.stubs(:client).returns(client)
-        Lhm::Throttler::Slave.any_instance.stubs(:config).returns([])
+        Lhm::Throttler::Replica.any_instance.stubs(:client).returns(client)
+        Lhm::Throttler::Replica.any_instance.stubs(:config).returns([])
 
-        slave = Lhm::Throttler::Slave.new('slave', @dummy_mysql_client_config)
-        Logger.any_instance.expects(:info).with("Unable to connect and/or query slave: Can't connect to MySQL server")
-        assert_equal(0, slave.lag)
+        replica = Lhm::Throttler::Replica.new('replica', @dummy_mysql_client_config)
+        Logger.any_instance.expects(:info).with("Unable to connect and/or query replica: Can't connect to MySQL server")
+        assert_equal(0, replica.lag)
       end
     end
   end
 end
 
-describe Lhm::Throttler::SlaveLag do
+describe Lhm::Throttler::ReplicaLag do
   include UnitHelper
 
   before :each do
-    @throttler = Lhm::Throttler::SlaveLag.new
+    @throttler = Lhm::Throttler::ReplicaLag.new
   end
 
   describe '#throttle_seconds' do
-    describe 'with no slave lag' do
+    describe 'with no replica lag' do
       before do
-        def @throttler.max_current_slave_lag
+        def @throttler.max_current_replica_lag
           0
         end
       end
@@ -170,9 +170,9 @@ describe Lhm::Throttler::SlaveLag do
       end
     end
 
-    describe 'with a large slave lag' do
+    describe 'with a large replica lag' do
       before do
-        def @throttler.max_current_slave_lag
+        def @throttler.max_current_replica_lag
           100
         end
       end
@@ -183,14 +183,14 @@ describe Lhm::Throttler::SlaveLag do
       end
 
       it 'does not increase the timeout past the maximum' do
-        @throttler.timeout_seconds = Lhm::Throttler::SlaveLag::MAX_TIMEOUT
-        assert_equal(Lhm::Throttler::SlaveLag::MAX_TIMEOUT, @throttler.send(:throttle_seconds))
+        @throttler.timeout_seconds = Lhm::Throttler::ReplicaLag::MAX_TIMEOUT
+        assert_equal(Lhm::Throttler::ReplicaLag::MAX_TIMEOUT, @throttler.send(:throttle_seconds))
       end
     end
 
-    describe 'with no slave lag after it has previously been increased' do
+    describe 'with no replica lag after it has previously been increased' do
       before do
-        def @throttler.max_current_slave_lag
+        def @throttler.max_current_replica_lag
           0
         end
       end
@@ -202,56 +202,56 @@ describe Lhm::Throttler::SlaveLag do
       end
 
       it 'does not decrease the timeout past the minimum on repeated runs' do
-        @throttler.timeout_seconds = Lhm::Throttler::SlaveLag::INITIAL_TIMEOUT * 2
-        assert_equal(Lhm::Throttler::SlaveLag::INITIAL_TIMEOUT, @throttler.send(:throttle_seconds))
-        assert_equal(Lhm::Throttler::SlaveLag::INITIAL_TIMEOUT, @throttler.send(:throttle_seconds))
+        @throttler.timeout_seconds = Lhm::Throttler::ReplicaLag::INITIAL_TIMEOUT * 2
+        assert_equal(Lhm::Throttler::ReplicaLag::INITIAL_TIMEOUT, @throttler.send(:throttle_seconds))
+        assert_equal(Lhm::Throttler::ReplicaLag::INITIAL_TIMEOUT, @throttler.send(:throttle_seconds))
       end
     end
   end
 
-  describe '#max_current_slave_lag' do
-    describe 'with multiple slaves' do
+  describe '#max_current_replica_lag' do
+    describe 'with multiple replicas' do
       it 'returns the largest amount of lag' do
-        slave1 = mock()
-        slave2 = mock()
-        slave1.stubs(:lag).returns(5)
-        slave2.stubs(:lag).returns(0)
-        Lhm::Throttler::SlaveLag.any_instance.stubs(:slaves).returns([slave1, slave2])
-        assert_equal 5, @throttler.send(:max_current_slave_lag)
+        replica1 = mock()
+        replica2 = mock()
+        replica1.stubs(:lag).returns(5)
+        replica2.stubs(:lag).returns(0)
+        Lhm::Throttler::ReplicaLag.any_instance.stubs(:replicas).returns([replica1, replica2])
+        assert_equal 5, @throttler.send(:max_current_replica_lag)
       end
     end
 
-    describe 'with MySQL stopped on the slave' do
-      it 'assumes 0 slave lag' do
+    describe 'with MySQL stopped on the replica' do
+      it 'assumes 0 replica lag' do
         client = mock()
         client.stubs(:query).raises(Mysql2::Error, "Can't connect to MySQL server")
-        Lhm::Throttler::Slave.any_instance.stubs(:client).returns(client)
+        Lhm::Throttler::Replica.any_instance.stubs(:client).returns(client)
 
-        Lhm::Throttler::Slave.any_instance.stubs(:prepare_connection_config).returns([])
-        Lhm::Throttler::Slave.any_instance.stubs(:slave_hosts).returns(['1.1.1.2'])
-        @throttler.stubs(:master_slave_hosts).returns(['1.1.1.1'])
+        Lhm::Throttler::Replica.any_instance.stubs(:prepare_connection_config).returns([])
+        Lhm::Throttler::Replica.any_instance.stubs(:replica_hosts).returns(['1.1.1.2'])
+        @throttler.stubs(:master_replica_hosts).returns(['1.1.1.1'])
 
-        assert_equal 0, @throttler.send(:max_current_slave_lag)
+        assert_equal 0, @throttler.send(:max_current_replica_lag)
       end
     end
   end
 
-  describe '#get_slaves' do
-    describe 'with no slaves' do
+  describe '#get_replicas' do
+    describe 'with no replicas' do
       before do
-        def @throttler.master_slave_hosts
+        def @throttler.master_replica_hosts
           []
         end
       end
 
-      it 'returns no slaves' do
-        assert_equal([], @throttler.send(:get_slaves))
+      it 'returns no replicas' do
+        assert_equal([], @throttler.send(:get_replicas))
       end
     end
 
-    describe 'with multiple slaves' do
+    describe 'with multiple replicas' do
       before do
-        class TestSlave
+        class TestReplica
           attr_reader :host, :connection
 
           def initialize(host, _)
@@ -259,7 +259,7 @@ describe Lhm::Throttler::SlaveLag do
             @connection = 'conn' if @host
           end
 
-          def slave_hosts
+          def replica_hosts
             if @host == '1.1.1.1'
               ['1.1.1.2', '1.1.1.3']
             else
@@ -268,21 +268,21 @@ describe Lhm::Throttler::SlaveLag do
           end
         end
 
-        @create_slave = lambda { |host, config|
-          TestSlave.new(host, config)
+        @create_replica = lambda { |host, config|
+          TestReplica.new(host, config)
         }
       end
 
       describe 'without the :check_only option' do
         before do
-          def @throttler.master_slave_hosts
+          def @throttler.master_replica_hosts
             ['1.1.1.1', '1.1.1.4']
           end
         end
 
-        it 'returns the slave instances' do
-          Lhm::Throttler::Slave.stubs(:new).returns(@create_slave) do
-            assert_equal(["1.1.1.4", "1.1.1.1", "1.1.1.3", "1.1.1.2"], @throttler.send(:get_slaves).map(&:host))
+        it 'returns the replica instances' do
+          Lhm::Throttler::Replica.stubs(:new).returns(@create_replica) do
+            assert_equal(["1.1.1.4", "1.1.1.1", "1.1.1.3", "1.1.1.2"], @throttler.send(:get_replicas).map(&:host))
           end
         end
       end
@@ -291,28 +291,28 @@ describe Lhm::Throttler::SlaveLag do
         describe 'with a callable argument' do
           before do
             check_only = lambda { { 'host' => '1.1.1.3' } }
-            @throttler = Lhm::Throttler::SlaveLag.new :check_only => check_only
+            @throttler = Lhm::Throttler::ReplicaLag.new :check_only => check_only
           end
 
-          it 'returns only that single slave' do
-            Lhm::Throttler::Slave.stubs(:new).returns(@create_slave) do
-              assert_equal ['1.1.1.3'], @throttler.send(:get_slaves).map(&:host)
+          it 'returns only that single replica' do
+            Lhm::Throttler::Replica.stubs(:new).returns(@create_replica) do
+              assert_equal ['1.1.1.3'], @throttler.send(:get_replicas).map(&:host)
             end
           end
         end
 
         describe 'with a non-callable argument' do
           before do
-            @throttler = Lhm::Throttler::SlaveLag.new :check_only => 'I cannot be called'
+            @throttler = Lhm::Throttler::ReplicaLag.new :check_only => 'I cannot be called'
 
-            def @throttler.master_slave_hosts
+            def @throttler.master_replica_hosts
               ['1.1.1.1', '1.1.1.4']
             end
           end
 
-          it 'returns all the slave instances' do
-            Lhm::Throttler::Slave.stubs(:new).returns(@create_slave) do
-              assert_equal(["1.1.1.4", "1.1.1.1", "1.1.1.3", "1.1.1.2"], @throttler.send(:get_slaves).map(&:host))
+          it 'returns all the replica instances' do
+            Lhm::Throttler::Replica.stubs(:new).returns(@create_replica) do
+              assert_equal(["1.1.1.4", "1.1.1.1", "1.1.1.3", "1.1.1.2"], @throttler.send(:get_replicas).map(&:host))
             end
           end
         end

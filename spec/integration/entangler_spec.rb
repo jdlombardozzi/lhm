@@ -27,7 +27,7 @@ describe Lhm::Entangler do
         execute("insert into origin (common) values ('inserted')")
       end
 
-      slave do
+      replica do
         value(count(:destination, 'common', 'inserted')).must_equal(1)
       end
     end
@@ -39,7 +39,7 @@ describe Lhm::Entangler do
         execute("delete from origin where common = 'inserted'")
       end
 
-      slave do
+      replica do
         value(count(:destination, 'common', 'inserted')).must_equal(0)
       end
     end
@@ -50,7 +50,7 @@ describe Lhm::Entangler do
         execute("update origin set common = 'updated'")
       end
 
-      slave do
+      replica do
         value(count(:destination, 'common', 'updated')).must_equal(1)
       end
     end
@@ -60,7 +60,7 @@ describe Lhm::Entangler do
 
       execute("insert into origin (common) values ('inserted')")
 
-      slave do
+      replica do
         value(count(:destination, 'common', 'inserted')).must_equal(0)
       end
     end

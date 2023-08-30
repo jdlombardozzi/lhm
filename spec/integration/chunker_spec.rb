@@ -28,7 +28,7 @@ describe Lhm::Chunker do
 
       Lhm::Chunker.new(@migration, connection, {throttler: throttler, printer: printer} ).run
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(1)
       end
 
@@ -41,7 +41,7 @@ describe Lhm::Chunker do
 
       Lhm::Chunker.new(@migration, connection, {throttler: throttler, printer: printer} ).run
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(2)
       end
     end
@@ -57,7 +57,7 @@ describe Lhm::Chunker do
 
       Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
 
-      slave do
+      replica do
         value(count_all(destination.name)).must_equal(2)
       end
     end
@@ -127,7 +127,7 @@ describe Lhm::Chunker do
 
       Lhm::Chunker.new(@migration, connection, {throttler: throttler, printer: printer} ).run
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(0)
       end
 
@@ -144,7 +144,7 @@ describe Lhm::Chunker do
         @migration, connection, { throttler: throttler, printer: printer }
       ).run
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(23)
       end
 
@@ -160,42 +160,42 @@ describe Lhm::Chunker do
         @migration, connection, { throttler: Lhm::Throttler::Time.new(stride: 10), printer: printer }
       ).run
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(11)
       end
 
     end
 
-    it 'should copy 23 rows from origin to destination in one shot with slave lag based throttler, regardless of the value of the id' do
+    it 'should copy 23 rows from origin to destination in one shot with replica lag based throttler, regardless of the value of the id' do
       23.times { |n| execute("insert into origin set id = '#{ 100000 + n * n + 23 }'") }
 
       printer = MiniTest::Mock.new
       printer.expect(:notify, :return_value, [Integer, Integer])
       printer.expect(:end, :return_value, [])
 
-      Lhm::Throttler::Slave.any_instance.stubs(:slave_hosts).returns(['127.0.0.1'])
-      Lhm::Throttler::SlaveLag.any_instance.stubs(:master_slave_hosts).returns(['127.0.0.1'])
+      Lhm::Throttler::Replica.any_instance.stubs(:replica_hosts).returns(['127.0.0.1'])
+      Lhm::Throttler::ReplicaLag.any_instance.stubs(:master_replica_hosts).returns(['127.0.0.1'])
 
       Lhm::Chunker.new(
-        @migration, connection, { throttler: Lhm::Throttler::SlaveLag.new(stride: 100), printer: printer }
+        @migration, connection, { throttler: Lhm::Throttler::ReplicaLag.new(stride: 100), printer: printer }
       ).run
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(23)
       end
 
       printer.verify
     end
 
-    it 'should throttle work stride based on slave lag' do
+    it 'should throttle work stride based on replica lag' do
       15.times { |n| execute("insert into origin set id = '#{ (n * n) + 1 }'") }
 
       printer = mock()
       printer.expects(:notify).with(instance_of(Integer), instance_of(Integer)).twice
       printer.expects(:end)
 
-      throttler = Lhm::Throttler::SlaveLag.new(stride: 10, allowed_lag: 0)
-      def throttler.max_current_slave_lag
+      throttler = Lhm::Throttler::ReplicaLag.new(stride: 10, allowed_lag: 0)
+      def throttler.max_current_replica_lag
         1
       end
 
@@ -203,14 +203,14 @@ describe Lhm::Chunker do
         @migration, connection, { throttler: throttler, printer: printer }
       ).run
 
-      assert_equal(Lhm::Throttler::SlaveLag::INITIAL_TIMEOUT * 2 * 2, throttler.timeout_seconds)
+      assert_equal(Lhm::Throttler::ReplicaLag::INITIAL_TIMEOUT * 2 * 2, throttler.timeout_seconds)
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(15)
       end
     end
 
-    it 'should detect a single slave with no lag in the default configuration' do
+    it 'should detect a single replica with no lag in the default configuration' do
       15.times { |n| execute("insert into origin set id = '#{ (n * n) + 1 }'") }
 
       printer = mock()
@@ -218,15 +218,15 @@ describe Lhm::Chunker do
       printer.expects(:verify)
       printer.expects(:end)
 
-      Lhm::Throttler::Slave.any_instance.stubs(:slave_hosts).returns(['127.0.0.1'])
-      Lhm::Throttler::SlaveLag.any_instance.stubs(:master_slave_hosts).returns(['127.0.0.1'])
+      Lhm::Throttler::Replica.any_instance.stubs(:replica_hosts).returns(['127.0.0.1'])
+      Lhm::Throttler::ReplicaLag.any_instance.stubs(:master_replica_hosts).returns(['127.0.0.1'])
 
-      throttler = Lhm::Throttler::SlaveLag.new(stride: 10, allowed_lag: 0)
+      throttler = Lhm::Throttler::ReplicaLag.new(stride: 10, allowed_lag: 0)
 
-      if master_slave_mode?
-        def throttler.slave_connection(slave)
+      if master_replica_mode?
+        def throttler.replica_connection(replica)
           config = ActiveRecord::Base.connection_pool.db_config.configuration_hash.dup
-          config[:host] = slave
+          config[:host] = replica
           config[:port] = 33007
           ActiveRecord::Base.send('mysql2_connection', config)
         end
@@ -236,10 +236,10 @@ describe Lhm::Chunker do
         @migration, connection, { throttler: throttler, printer: printer }
       ).run
 
-      assert_equal(Lhm::Throttler::SlaveLag::INITIAL_TIMEOUT, throttler.timeout_seconds)
-      assert_equal(0, throttler.send(:max_current_slave_lag))
+      assert_equal(Lhm::Throttler::ReplicaLag::INITIAL_TIMEOUT, throttler.timeout_seconds)
+      assert_equal(0, throttler.send(:max_current_replica_lag))
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(15)
       end
 
@@ -261,7 +261,7 @@ describe Lhm::Chunker do
 
       assert_match "Verification failed, aborting early", exception.message
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(0)
       end
     end

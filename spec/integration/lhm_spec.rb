@@ -17,7 +17,7 @@ describe Lhm do
         t.add_column(:logins, "int(12) default '0'")
       end
 
-      slave do
+      replica do
         value(table_read(:users).columns['logins']).must_equal({
           :type           => 'int(12)',
           :is_nullable    => 'YES',
@@ -35,7 +35,7 @@ describe Lhm do
         t.add_column(:logins, "int(12) default '0'")
       end
 
-      slave do
+      replica do
         value(table_read(:custom_primary_key).columns['logins']).must_equal({
           :type           => 'int(12)',
           :is_nullable    => 'YES',
@@ -53,7 +53,7 @@ describe Lhm do
         t.add_column(:logins, "int(12) default '0'")
       end
 
-      slave do
+      replica do
         value(table_read(:composite_primary_key).columns['logins']).must_equal({
           :type           => 'int(12)',
           :is_nullable    => 'YES',
@@ -82,7 +82,7 @@ describe Lhm do
           t.ddl("ALTER TABLE #{t.name} CHANGE id id bigint (20) NOT NULL AUTO_INCREMENT")
         end
 
-        slave do
+        replica do
           value(connection.primary_key('users')).must_equal(['username', 'id'])
         end
       end
@@ -104,7 +104,7 @@ describe Lhm do
       describe 'when no additional data is inserted into the table' do
 
         it 'migrates the existing data' do
-          slave do
+          replica do
             value(count_all(:permissions)).must_equal(11)
           end
         end
@@ -120,7 +120,7 @@ describe Lhm do
         end
 
         it 'migrates all data' do
-          slave do
+          replica do
             value(count_all(:permissions)).must_equal(13)
           end
         end
@@ -132,7 +132,7 @@ describe Lhm do
         t.add_column(:logins, "INT(12) DEFAULT '0'")
       end
 
-      slave do
+      replica do
         value(table_read(:users).columns['logins']).must_equal({
           :type => 'int(12)',
           :is_nullable => 'YES',
@@ -150,7 +150,7 @@ describe Lhm do
         t.add_column(:logins, "INT(12) DEFAULT '0'")
       end
 
-      slave do
+      replica do
         value(count_all(:users)).must_equal(23)
       end
     end
@@ -160,7 +160,7 @@ describe Lhm do
         t.remove_column(:comment)
       end
 
-      slave do
+      replica do
         assert_nil table_read(:users).columns['comment']
       end
     end
@@ -170,7 +170,7 @@ describe Lhm do
         t.add_index([:comment, :created_at])
       end
 
-      slave do
+      replica do
         value(index_on_columns?(:users, [:comment, :created_at])).must_equal(true)
       end
     end
@@ -180,7 +180,7 @@ describe Lhm do
         t.add_index([:comment, :created_at], :my_index_name)
       end
 
-      slave do
+      replica do
         value(index?(:users, :my_index_name)).must_equal(true)
       end
     end
@@ -190,7 +190,7 @@ describe Lhm do
         t.add_index(:group)
       end
 
-      slave do
+      replica do
         value(index_on_columns?(:users, :group)).must_equal(true)
       end
     end
@@ -200,7 +200,7 @@ describe Lhm do
         t.add_unique_index(:comment)
       end
 
-      slave do
+      replica do
         value(index_on_columns?(:users, :comment, :unique)).must_equal(true)
       end
     end
@@ -210,7 +210,7 @@ describe Lhm do
         t.remove_index([:username, :created_at])
       end
 
-      slave do
+      replica do
         value(index_on_columns?(:users, [:username, :created_at])).must_equal(false)
       end
     end
@@ -220,7 +220,7 @@ describe Lhm do
         t.remove_index([:username, :group])
       end
 
-      slave do
+      replica do
         value(index?(:users, :index_with_a_custom_name)).must_equal(false)
       end
     end
@@ -230,7 +230,7 @@ describe Lhm do
         t.remove_index(:irrelevant_column_name, :index_with_a_custom_name)
       end
 
-      slave do
+      replica do
         value(index?(:users, :index_with_a_custom_name)).must_equal(false)
       end
     end
@@ -240,7 +240,7 @@ describe Lhm do
         t.ddl('alter table %s add column flag tinyint(1)' % t.name)
       end
 
-      slave do
+      replica do
         value(table_read(:users).columns['flag']).must_equal({
           :type => 'tinyint(1)',
           :is_nullable => 'YES',
@@ -256,7 +256,7 @@ describe Lhm do
         t.change_column(:comment, "varchar(20) DEFAULT 'none' NOT NULL")
       end
 
-      slave do
+      replica do
         value(table_read(:users).columns['comment']).must_equal({
           :type => 'varchar(20)',
           :is_nullable => 'NO',
@@ -274,7 +274,7 @@ describe Lhm do
         t.change_column(:id, 'int(5)')
       end
 
-      slave do
+      replica do
         value(table_read(:small_table).columns['id']).must_equal({
           :type => 'int(5)',
           :is_nullable => 'NO',
@@ -293,7 +293,7 @@ describe Lhm do
         t.rename_column(:username, :login)
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['login']).must_equal({
@@ -318,7 +318,7 @@ describe Lhm do
         t.rename_column(:group, :fnord)
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['group']
         value(table_read(:users).columns['fnord']).must_equal({
@@ -345,7 +345,7 @@ describe Lhm do
         t.rename_column(:username, :user_name)
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['user_name']).must_equal({
@@ -373,7 +373,7 @@ describe Lhm do
         t.rename_column(:reference, :ref)
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['reference']
         value(table_read(:users).columns['ref']).must_equal({
@@ -400,7 +400,7 @@ describe Lhm do
         t.rename_column(:group, :fnord)
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['group']
         value(table_read(:users).columns['fnord']).must_equal({
@@ -425,7 +425,7 @@ describe Lhm do
         t.rename_column(:username, :user_name)
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['user_name']).must_equal({
@@ -452,7 +452,7 @@ describe Lhm do
         t.rename_column(:username, :user_name)
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['username']
         value(table_read(:users).columns['user_name']).must_equal({
@@ -499,7 +499,7 @@ describe Lhm do
         end
       end
 
-      slave do
+      replica do
         table_data = table_read(:users)
         assert_nil table_data.columns['fnord']
         value(table_read(:users).columns['group']).must_equal({
@@ -525,7 +525,7 @@ describe Lhm do
         t.remove_index('by')
       end
 
-      slave do
+      replica do
         value(table_read(:lines).columns).must_include 'by'
         value(table_read(:lines).columns).wont_include 'lines'
         value(index_on_columns?(:lines, ['between'], :unique)).must_equal true
@@ -554,7 +554,7 @@ describe Lhm do
 
         insert.join
 
-        slave do
+        replica do
           value(count_all(:users)).must_equal(60)
         end
       end
@@ -577,7 +577,7 @@ describe Lhm do
 
         delete.join
 
-        slave do
+        replica do
           value(count_all(:users)).must_equal(40)
         end
       end
@@ -650,7 +650,7 @@ describe Lhm do
 
         Lhm::ChunkInsert.remove_all_callbacks
 
-        slave do
+        replica do
           value(count_all(:users)).must_equal(100)
         end
       end
