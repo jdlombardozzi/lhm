@@ -25,7 +25,8 @@ commands:
   unit: bundle exec rake unit
   int: bundle exec rake integration
   test:
-    optional: file
+    syntax:
+      optional: file
     aliases: [ t ]
     run: |
       if [[ $# -eq 0 ]]; then
