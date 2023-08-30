@@ -1,3 +1,7 @@
+# Unreleased
+* Deprecate `SlaveLag` throttler class name. Use `ReplicaLag` instead (https://github.com/Shopify/lhm/pull/144)
+* Deprecate `slave_lag_throttler` throttler config value. Use `replica_lag_throttler` instead (https://github.com/Shopify/lhm/pull/144)
+
 # 3.5.5 (Jan, 2022)
 * Fix error where from Config shadowing which would cause LHM to abort on reconnect (https://github.com/Shopify/lhm/pull/128)
 
