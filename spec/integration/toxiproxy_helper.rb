@@ -7,7 +7,7 @@ module ToxiproxyHelper
     def included(base)
       Toxiproxy.reset
 
-      # listen on localhost, but toxiproxy is in a container itself, thus the upstream uses the Docker-Compose DNS
+      # listen on localhost, but toxiproxy is in a container itself, thus the upstream uses the Podman-Compose DNS
       Toxiproxy.populate(
         [
           {

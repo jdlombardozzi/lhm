@@ -312,7 +312,7 @@ bundle update
 bundle exec appraisals install
 ```
 
-### Docker Compose
+### Podman Compose
 The integration tests rely on a replication configuration for MySQL which is being proxied by an instance of ProxySQL.
 It is important that every container is running to execute the integration test suite.
 

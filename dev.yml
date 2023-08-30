@@ -7,15 +7,15 @@ up:
       - wget
   - ruby: 2.7.5
   - bundler
+  - podman
   - custom:
       name: Get Appraisal gems
       met?: bundle exec appraisal install
       meet: ":"
-  - docker
   - custom:
-      name: Docker Compose
-      met?: docker compose ls | grep -ioE -q "lhm.*running\(4\)"
-      meet: docker compose up -d
+      name: Podman compose
+      met?: podman-compose ls | grep -ioE -q "lhm.*running\(4\)"
+      meet: podman-compose up -d
   - custom:
       name: Waiting for DBs to be operational
       met?: ./scripts/helpers/wait-for-dbs.sh
@@ -25,7 +25,8 @@ commands:
   unit: bundle exec rake unit
   int: bundle exec rake integration
   test:
-    optional: file
+    syntax:
+      optional: file
     aliases: [ t ]
     run: |
       if [[ $# -eq 0 ]]; then
@@ -37,9 +38,9 @@ commands:
   cov: rm -rf coverage; COV=1 bundle exec rake unit && bundle exec rake integration; open coverage/index.html
   logs:
     desc: "See the DB logs (ctrl-c + ctrl-c to exit)"
-    run: docker-compose logs -f
+    run: podman-compose logs -f
   clear:
-    run: docker-compose rm -v -s -f && docker-compose up -d && ./scripts/helpers/wait-for-dbs.sh
+    run: podman-compose down -v && podman-compose up -d && ./scripts/helpers/wait-for-dbs.sh
   pre-publish:
     # Ensures all Gemfile.lock are sync with the new version in `lhm/version.rb` and runs appraisals
     run: bundle install && bundle exec appraisal install && bundle exec appraisal rake specs
