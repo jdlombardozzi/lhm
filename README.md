@@ -165,13 +165,13 @@ Lhm.change_table :users, throttler: my_throttler  do |m|
 end
 ```
 
-### SlaveLag Throttler
+### ReplicaLag Throttler
 
 Lhm uses by default the time throttler, however a better solution is to throttle the copy of the data
-depending on the time that the slaves are behind. To use the SlaveLag throttler:
+depending on the time that the replicas are behind. To use the ReplicaLag throttler:
 
 ```ruby
-Lhm.change_table :users, throttler: :slave_lag_throttler  do |m|
+Lhm.change_table :users, throttler: :replica_lag_throttler  do |m|
   ...
 end
 ```
@@ -179,7 +179,7 @@ end
 Or to set that as default throttler, use the following (for instance in a Rails initializer):
 
 ```ruby
-Lhm.setup_throttler(:slave_lag_throttler)
+Lhm.setup_throttler(:replica_lag_throttler)
 ```
 
 ### ThreadsRunning Throttler

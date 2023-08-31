@@ -53,12 +53,12 @@ module IntegrationHelper
     )
   end
 
-  def connect_slave!
+  def connect_replica!
     connect!(
       '127.0.0.1',
-      $db_config['slave']['port'],
-      $db_config['slave']['user'],
-      $db_config['slave']['password'],
+      $db_config['replica']['port'],
+      $db_config['replica']['user'],
+      $db_config['replica']['password'],
     )
   end
 
@@ -113,12 +113,12 @@ module IntegrationHelper
     end
   end
 
-  def slave(&block)
-    if master_slave_mode?
-      connect_slave!
+  def replica(&block)
+    if master_replica_mode?
+      connect_replica!
 
-      # need to wait for the slave to catch up. a better method would be to
-      # check the master binlog position and wait for the slave to catch up
+      # need to wait for the replica to catch up. a better method would be to
+      # check the master binlog position and wait for the replica to catch up
       # to that position.
       sleep 1
     else
@@ -127,7 +127,7 @@ module IntegrationHelper
 
     yield block
 
-    if master_slave_mode?
+    if master_replica_mode?
       connect_master!
     end
   end
@@ -215,8 +215,8 @@ module IntegrationHelper
   # Environment
   #
 
-  def master_slave_mode?
-    !!ENV['MASTER_SLAVE']
+  def master_replica_mode?
+    !!ENV['MASTER_REPLICA']
   end
 
   #

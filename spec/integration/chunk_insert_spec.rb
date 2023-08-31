@@ -19,10 +19,10 @@ describe Lhm::ChunkInsert do
       assert_equal 1, @instance.insert_and_return_count_of_rows_created
     end
 
-    it "inserts the record into the slave" do
+    it "inserts the record into the replica" do
       @instance.insert_and_return_count_of_rows_created
 
-      slave do
+      replica do
         value(count_all(@destination.name)).must_equal(1)
       end
     end

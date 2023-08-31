@@ -31,7 +31,7 @@ describe Lhm::LockedSwitcher do
       switcher = Lhm::LockedSwitcher.new(@migration, connection)
       switcher.run
 
-      slave do
+      replica do
         value(data_source_exists?(@origin)).must_equal true
         value(table_read(@migration.archive_name).columns.keys).must_include 'origin'
       end
@@ -41,7 +41,7 @@ describe Lhm::LockedSwitcher do
       switcher = Lhm::LockedSwitcher.new(@migration, connection)
       switcher.run
 
-      slave do
+      replica do
         value(data_source_exists?(@destination)).must_equal false
         value(table_read(@origin.name).columns.keys).must_include 'destination'
       end

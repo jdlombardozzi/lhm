@@ -31,13 +31,13 @@ describe Lhm::Throttler do
       end
     end
 
-    describe 'when passing a slave_lag_throttler key' do
+    describe 'when passing a replica_lag_throttler key' do
       before do
-        @mock.setup_throttler(:slave_lag_throttler, allowed_lag: 20)
+        @mock.setup_throttler(:replica_lag_throttler, allowed_lag: 20)
       end
 
-      it 'instantiates the slave_lag throttle' do
-        value(@mock.throttler.class).must_equal Lhm::Throttler::SlaveLag
+      it 'instantiates the replica_lag throttle' do
+        value(@mock.throttler.class).must_equal Lhm::Throttler::ReplicaLag
       end
 
       it 'returns 20 seconds as allowed_lag' do
@@ -66,10 +66,10 @@ describe Lhm::Throttler do
       end
     end
 
-    describe 'when passing a slave_lag_throttler instance' do
+    describe 'when passing a replica_lag_throttler instance' do
 
       before do
-        @instance = Lhm::Throttler::SlaveLag.new
+        @instance = Lhm::Throttler::ReplicaLag.new
         def @instance.timeout_seconds
           0
         end
@@ -98,10 +98,10 @@ describe Lhm::Throttler do
       end
     end
 
-    describe 'when passing a slave_lag_throttler class' do
+    describe 'when passing a replica_lag_throttler class' do
 
       before do
-        @klass = Class.new(Lhm::Throttler::SlaveLag)
+        @klass = Class.new(Lhm::Throttler::ReplicaLag)
         @mock.setup_throttler(@klass)
       end
 
