@@ -189,6 +189,13 @@ throttle based on the number of threads running in MySQL, as a proxy for "is
 this operation causing excessive load":
 
 ```ruby
+my_throttler = Lhm::Throttler::ThreadsRunning.new(stride: 100_000)
+
+Lhm.change_table :users, throttler: my_throttler  do |m|
+  ...
+end
+
+# or use default settings:
 Lhm.change_table :users, throttler: :threads_running_throttler do |m|
   ...
 end
