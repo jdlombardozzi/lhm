@@ -14,34 +14,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        activerecord: ["6.1", "7.0", "7.1"]
+        ruby: ["3.0", "3.1", "3.2", "head"]
+        mysql: ["5.7", "8.0"]
+        adapter: ["mysql2"]
+
         include:
-          - ruby-version: "3.0"
-            activerecord-version: "6.0"
-            mysql_version: "5.7"
-          - ruby-version: "3.1"
-            activerecord-version: "6.1"
-            mysql_version: "5.7"
-          - ruby-version: "3.2"
-            activerecord-version: "7.0"
-            mysql_version: "8.0"
-          - ruby-version: "3.2"
-            activerecord-version: "7.1"
-            mysql_version: "8.0"
+          # Trilogy was added in AR in version 7.1
+          - adapter: "trilogy"
+            activerecord: "7.1"
+
+    env:
+      BUNDLE_GEMFILE: "${{ github.workspace }}/gemfiles/activerecord_${{ matrix.activerecord }}.gemfile"
+      DATABASE_ADAPTER: "${{ matrix.adapter }}"
+
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ${{matrix.ruby-version}}
-          bundler-cache: false
-      - name: Install Ruby packages
-        run: BUNDLE_GEMFILE="${GITHUB_WORKSPACE}/gemfiles/activerecord_${{ matrix.activerecord-version }}.gemfile" bundle install
+          ruby-version: ${{matrix.ruby}}
+          bundler-cache: true
+
       - name: Install Ubuntu packages
         run: sudo apt-get update && sudo apt-get install numactl libaio-dev libmysqlclient-dev
+
       - name: Setup MySQL and ProxySQL (docker-compose)
-        run: docker-compose -f docker-compose-mysql-${{ matrix.mysql_version }}.yml up -d # Might have to change to docker compose up -d (i.e. Compose V2) when the Ubuntu image changes the docker-compose version
+        # Might have to change to docker compose up -d (i.e. Compose V2) when the Ubuntu image changes the docker-compose version
+        run: docker-compose -f docker-compose-mysql-${{ matrix.mysql }}.yml up -d
+
       - name: Wait until DBs are alive
         run: ./scripts/helpers/wait-for-dbs.sh
         timeout-minutes: 2
+
       - name: Run tests
-        run: BUNDLE_GEMFILE="${GITHUB_WORKSPACE}/gemfiles/activerecord_${{ matrix.activerecord-version }}.gemfile" bundle exec rake specs
+        run: bundle exec rake specs
