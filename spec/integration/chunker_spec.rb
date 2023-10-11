@@ -229,7 +229,7 @@ describe Lhm::Chunker do
         def throttler.replica_connection(replica)
           config = ActiveRecord::Base.connection_pool.db_config.configuration_hash.dup
           config[:host] = replica
-          config[:port] = 33007
+          config[:port] = 13007
           ActiveRecord::Base.send('mysql2_connection', config)
         end
       end

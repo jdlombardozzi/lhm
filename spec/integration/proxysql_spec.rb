@@ -4,7 +4,7 @@ describe "ProxySQL integration" do
       host: '127.0.0.1',
       username: "writer",
       password: "password",
-      port: "33005",
+      port: "13005",
       )
 
     assert_equal conn.query("SELECT @@global.hostname as host").each.first["host"], "mysql-1"
@@ -15,7 +15,7 @@ describe "ProxySQL integration" do
       host: '127.0.0.1',
       username: "reader",
       password: "password",
-      port: "33005",
+      port: "13005",
       )
 
     assert_equal conn.query("SELECT @@global.hostname as host").each.first["host"], "mysql-2"
@@ -26,7 +26,7 @@ describe "ProxySQL integration" do
       host: '127.0.0.1',
       username: "reader",
       password: "password",
-      port: "33005",
+      port: "13005",
       )
 
     assert_equal conn.query("SELECT @@global.hostname as host #{Lhm::ProxySQLHelper::ANNOTATION}").each.first["host"], "mysql-1"
