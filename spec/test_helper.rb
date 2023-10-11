@@ -14,6 +14,7 @@ require 'after_do'
 require 'byebug'
 require 'pathname'
 require 'lhm'
+require 'active_record'
 
 $project = Pathname.new(File.dirname(__FILE__) + '/..').cleanpath
 $spec = $project.join('spec')
@@ -21,8 +22,17 @@ $fixtures = $spec.join('fixtures')
 
 $db_name = 'test'
 
-require 'active_record'
-require 'mysql2'
+Database = Struct.new(:adapter, :client)
+
+DATABASE =
+  case ENV['DATABASE_ADAPTER']
+  when 'trilogy'
+    require 'trilogy'
+    Database.new('trilogy', Trilogy)
+  else
+    require 'mysql2'
+    Database.new('mysql2', Mysql2::Client)
+  end
 
 logger = Logger.new STDOUT
 logger.level = Logger::WARN
@@ -53,7 +63,7 @@ end
 
 def init_test_db
   db_config = YAML.load_file(File.expand_path(File.dirname(__FILE__)) + '/integration/database.yml')
-  conn = Mysql2::Client.new(
+  conn = DATABASE.client.new(
     :host => '127.0.0.1',
     :username => db_config['master']['user'],
     :password => db_config['master']['password'],

@@ -87,7 +87,7 @@ class LockWaitTimeoutTestHelper
   attr_reader :main_conn, :lock_duration, :innodb_lock_wait_timeout
 
   def new_mysql_connection
-    Mysql2::Client.new(
+    DATABASE.client.new(
       host: '127.0.0.1',
       username: db_config['master']['user'],
       password: db_config['master']['password'],

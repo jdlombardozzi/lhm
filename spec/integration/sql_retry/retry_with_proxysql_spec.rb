@@ -1,5 +1,4 @@
 require 'minitest/autorun'
-require 'mysql2'
 require 'lhm'
 require 'toxiproxy'
 

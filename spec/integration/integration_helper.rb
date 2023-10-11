@@ -89,7 +89,7 @@ module IntegrationHelper
 
   def ar_conn(host, port, user, password)
     ActiveRecord::Base.establish_connection(
-      :adapter  => 'mysql2',
+      :adapter  => DATABASE.adapter,
       :host     => host,
       :username => user,
       :port     => port,
@@ -179,7 +179,7 @@ module IntegrationHelper
   end
 
   def new_mysql_connection(role='master')
-    Mysql2::Client.new(
+    DATABASE.client.new(
       host: '127.0.0.1',
       database: $db_name,
       username: $db_config[role]['user'],

@@ -1,6 +1,6 @@
 describe "ProxySQL integration" do
   it "Should contact the writer" do
-    conn = Mysql2::Client.new(
+    conn = DATABASE.client.new(
       host: '127.0.0.1',
       username: "writer",
       password: "password",
@@ -11,7 +11,7 @@ describe "ProxySQL integration" do
   end
 
   it "Should contact the reader" do
-    conn = Mysql2::Client.new(
+    conn = DATABASE.client.new(
       host: '127.0.0.1',
       username: "reader",
       password: "password",
@@ -22,7 +22,7 @@ describe "ProxySQL integration" do
   end
 
   it "Should override default hostgroup from user if rule matches" do
-    conn = Mysql2::Client.new(
+    conn = DATABASE.client.new(
       host: '127.0.0.1',
       username: "reader",
       password: "password",

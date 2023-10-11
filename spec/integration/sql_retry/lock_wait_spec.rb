@@ -1,5 +1,4 @@
 require 'minitest/autorun'
-require 'mysql2'
 require 'integration/sql_retry/lock_wait_timeout_test_helper'
 require 'lhm'
 
@@ -22,7 +21,7 @@ describe Lhm::SqlRetry do
     # Assert our pre-conditions
     assert_equal 2, @helper.record_count
 
-    Mysql2::Client.any_instance.stubs(:active?).returns(true)
+    DATABASE.client.any_instance.stubs(:active?).returns(true)
   end
 
   after(:each) do
