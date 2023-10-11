@@ -17,12 +17,7 @@ jobs:
         activerecord: ["6.1", "7.0", "7.1"]
         ruby: ["3.0", "3.1", "3.2", "head"]
         mysql: ["5.7", "8.0"]
-        adapter: ["mysql2"]
-
-        include:
-          # Trilogy was added in AR in version 7.1
-          - adapter: "trilogy"
-            activerecord: "7.1"
+        adapter: ["mysql2", "trilogy"]
 
     env:
       BUNDLE_GEMFILE: "${{ github.workspace }}/gemfiles/activerecord_${{ matrix.activerecord }}.gemfile"

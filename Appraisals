@@ -1,19 +1,13 @@
-# First conflicted version
-appraise "activerecord-6.0" do
-  gem "activerecord", "6.0.3"
-end
-
-# Second conflicted version
 appraise "activerecord-6.1" do
   gem "activerecord", "6.1.0"
+  gem "activerecord-trilogy-adapter"
 end
 
-# Latest version at the moment
 appraise "activerecord-7.0" do
   gem "activerecord", "7.0.8"
+  gem "activerecord-trilogy-adapter"
 end
 
-# Next release
-appraise "activerecord-7.1.0.beta1" do
-  gem "activerecord", "7.1.0.beta1"
+appraise "activerecord-7.1" do
+  gem "activerecord", "7.1.0"
 end
