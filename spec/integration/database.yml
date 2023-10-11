@@ -2,17 +2,17 @@ master:
   host: mysql-1
   user: root
   password: password
-  port: 33006
+  port: 13006
 replica:
   host: mysql-2
   user: root
   password: password
-  port: 33007
+  port: 13007
 proxysql:
   host: proxysql
   user: root
   password: password
-  port: 33005
+  port: 13005
 master_toxic:
   host: toxiproxy
   user: root
