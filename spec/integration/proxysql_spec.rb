@@ -7,7 +7,7 @@ describe "ProxySQL integration" do
       port: "13005",
       )
 
-    assert_equal conn.query("SELECT @@global.hostname as host").each.first["host"], "mysql-1"
+    assert_equal DATABASE.query(conn, "SELECT @@global.hostname as host").each.first["host"], "mysql-1"
   end
 
   it "Should contact the reader" do
@@ -18,7 +18,7 @@ describe "ProxySQL integration" do
       port: "13005",
       )
 
-    assert_equal conn.query("SELECT @@global.hostname as host").each.first["host"], "mysql-2"
+    assert_equal DATABASE.query(conn, "SELECT @@global.hostname as host").each.first["host"], "mysql-2"
   end
 
   it "Should override default hostgroup from user if rule matches" do
@@ -29,6 +29,6 @@ describe "ProxySQL integration" do
       port: "13005",
       )
 
-    assert_equal conn.query("SELECT @@global.hostname as host #{Lhm::ProxySQLHelper::ANNOTATION}").each.first["host"], "mysql-1"
+    assert_equal DATABASE.query(conn, "SELECT @@global.hostname as host #{Lhm::ProxySQLHelper::ANNOTATION}").each.first["host"], "mysql-1"
   end
 end

@@ -91,6 +91,14 @@ module Lhm
 
       attr_reader :host, :connection
 
+      def self.client
+        Trilogy
+      end
+
+      def self.client_error
+        Trilogy::BaseError
+      end
+
       def initialize(host, connection_config = nil)
         @host = host
         @connection_config = prepare_connection_config(connection_config)
@@ -108,13 +116,11 @@ module Lhm
       private
 
       def client(config)
-        begin
-          Lhm.logger.info "Connecting to #{@host} on database: #{config[:database]}"
-          Mysql2::Client.new(config)
-        rescue Mysql2::Error => e
-          Lhm.logger.info "Error connecting to #{@host}: #{e}"
-          nil
-        end
+        Lhm.logger.info "Connecting to #{@host} on database: #{config[:database]}"
+        self.class.client.new(config)
+      rescue self.class.client_error => e
+        Lhm.logger.info "Error connecting to #{@host}: #{e}"
+        nil
       end
 
       def prepare_connection_config(config_proc)
@@ -133,12 +139,10 @@ module Lhm
       end
 
       def query_connection(query, result)
-        begin
-          @connection.query(query).map { |row| row[result] }
-        rescue Mysql2::Error => e
-          Lhm.logger.info "Unable to connect and/or query #{host}: #{e}"
-          [nil]
-        end
+        @connection.query(query).map { |row| row[result] }
+      rescue self.class.client_error => e
+        Lhm.logger.info "Unable to connect and/or query #{host}: #{e}"
+        [nil]
       end
 
       private

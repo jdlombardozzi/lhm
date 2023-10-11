@@ -43,14 +43,6 @@ describe Lhm::Throttler::Replica do
   end
 
   describe "#client" do
-    before do
-      class TestMysql2Client
-        def initialize(config)
-          raise Mysql2::Error.new("connection error")
-        end
-      end
-    end
-
     describe 'on connection error' do
       it 'logs and returns nil' do
         assert_nil(Lhm::Throttler::Replica.new('replica', @dummy_mysql_client_config).connection)
@@ -58,14 +50,14 @@ describe Lhm::Throttler::Replica do
         log_messages = @logs.string.lines
         assert_equal(2, log_messages.length)
         assert log_messages[0].include? "Connecting to replica on database: db"
-        assert log_messages[1].include? "Error connecting to replica: Unknown MySQL server host 'replica'"
+        assert log_messages[1].include? "Error connecting to replica"
       end
     end
 
     describe 'with proper config' do
-      it "creates a new Mysql2::Client" do
+      it "creates a new database client" do
         expected_config = { username: 'user', password: 'pw', database: 'db', host: 'replica' }
-        Mysql2::Client.stubs(:new).with(expected_config).returns(mock())
+        DATABASE.client.stubs(:new).with(expected_config).returns(mock())
 
         assert Lhm::Throttler::Replica.new('replica', @dummy_mysql_client_config).connection
       end
@@ -80,7 +72,7 @@ describe Lhm::Throttler::Replica do
           ActiveRecord::Base.stubs(:connection_pool).returns(stub(spec: stub(config: active_record_config)))
         end
 
-        Mysql2::Client.stubs(:new).returns(mock())
+        DATABASE.client.stubs(:new).returns(mock())
 
         assert Lhm::Throttler::Replica.new('replica').connection
 
@@ -137,7 +129,7 @@ describe Lhm::Throttler::Replica do
     describe "#lag on connection error" do
       it "logs and returns 0 replica lag" do
         client = mock()
-        client.stubs(:query).raises(Mysql2::Error, "Can't connect to MySQL server")
+        client.stubs(:query).raises(DATABASE.error_class, "Can't connect to MySQL server")
         Lhm::Throttler::Replica.any_instance.stubs(:client).returns(client)
         Lhm::Throttler::Replica.any_instance.stubs(:config).returns([])
 
@@ -224,7 +216,7 @@ describe Lhm::Throttler::ReplicaLag do
     describe 'with MySQL stopped on the replica' do
       it 'assumes 0 replica lag' do
         client = mock()
-        client.stubs(:query).raises(Mysql2::Error, "Can't connect to MySQL server")
+        client.stubs(:query).raises(DATABASE.error_class, "Can't connect to MySQL server")
         Lhm::Throttler::Replica.any_instance.stubs(:client).returns(client)
 
         Lhm::Throttler::Replica.any_instance.stubs(:prepare_connection_config).returns([])

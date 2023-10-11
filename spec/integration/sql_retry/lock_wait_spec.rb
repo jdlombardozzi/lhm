@@ -43,7 +43,7 @@ describe Lhm::SqlRetry do
     exception = assert_raises { @helper.trigger_wait_lock }
 
     assert_match /Lock wait timeout exceeded; try restarting transaction/, exception.message
-    assert_equal Mysql2::Error::TimeoutError, exception.class
+    assert_equal DATABASE.timeout_error, exception.class
 
     assert_equal 2, @helper.record_count # no records inserted
     puts "*" * 64
@@ -81,10 +81,10 @@ describe Lhm::SqlRetry do
     logs = @logger.string.split("\n")
     assert_equal 2, logs.length
 
-    assert logs.first.include?("Mysql2::Error::TimeoutError: 'Lock wait timeout exceeded; try restarting transaction' - 1 tries")
+    assert logs.first.include?("Lock wait timeout exceeded; try restarting transaction' - 1 tries")
     assert logs.first.include?("0.2 seconds until the next try")
 
-    assert logs.last.include?("Mysql2::Error::TimeoutError: 'Lock wait timeout exceeded; try restarting transaction' - 2 tries")
+    assert logs.last.include?("Lock wait timeout exceeded; try restarting transaction' - 2 tries")
     assert logs.last.include?("0.2 seconds until the next try")
   end
 
@@ -118,7 +118,7 @@ describe Lhm::SqlRetry do
     exception = assert_raises { @helper.trigger_wait_lock }
 
     assert_match /Lock wait timeout exceeded; try restarting transaction/, exception.message
-    assert_equal Mysql2::Error::TimeoutError, exception.class
+    assert_equal DATABASE.timeout_error, exception.class
 
     assert_equal 2, @helper.record_count # no records inserted
     puts "*" * 64

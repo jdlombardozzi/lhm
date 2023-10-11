@@ -22,16 +22,22 @@ $fixtures = $spec.join('fixtures')
 
 $db_name = 'test'
 
-Database = Struct.new(:adapter, :client)
+Database = Struct.new(:adapter, :client, :error_class, :timeout_error) do
+  def query(connection, sql)
+    results = connection.query(sql)
+    results = results.each_hash if adapter == "trilogy"
+    results
+  end
+end
 
 DATABASE =
   case ENV['DATABASE_ADAPTER']
   when 'trilogy'
     require 'trilogy'
-    Database.new('trilogy', Trilogy)
+    Database.new('trilogy', Trilogy, Trilogy::BaseError, Trilogy::TimeoutError)
   else
     require 'mysql2'
-    Database.new('mysql2', Mysql2::Client)
+    Database.new('mysql2', Mysql2::Client, Mysql2::Error, Mysql2::Error::TimeoutError)
   end
 
 logger = Logger.new STDOUT

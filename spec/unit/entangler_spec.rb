@@ -66,7 +66,7 @@ describe Lhm::Entangler do
       ar_connection.stubs(:execute)
                        .returns([["dummy"]], [["dummy"]], [["dummy"]])
                        .then
-                       .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')
+                       .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
       ar_connection.stubs(:active?).returns(true)
 
       connection = Lhm::Connection.new(connection: ar_connection, options: {
@@ -79,7 +79,7 @@ describe Lhm::Entangler do
 
       @entangler = Lhm::Entangler.new(@migration, connection)
 
-      assert_raises(Mysql2::Error) { @entangler.before }
+      assert_raises(DATABASE.error_class) { @entangler.before }
     end
 
     it 'should not retry trigger creation with other mysql errors' do
@@ -87,7 +87,7 @@ describe Lhm::Entangler do
       ar_connection.stubs(:execute)
                    .returns([["dummy"]], [["dummy"]], [["dummy"]])
                    .then
-                   .raises(Mysql2::Error, 'The MySQL server is running with the --read-only option so it cannot execute this statement.')
+                   .raises(DATABASE.error_class, 'The MySQL server is running with the --read-only option so it cannot execute this statement.')
       ar_connection.stubs(:active?).returns(true)
       connection = Lhm::Connection.new(connection: ar_connection, options: {
         reconnect_with_consistent_host: true,
@@ -97,7 +97,7 @@ describe Lhm::Entangler do
       })
 
       @entangler = Lhm::Entangler.new(@migration, connection)
-      assert_raises(Mysql2::Error) { @entangler.before }
+      assert_raises(DATABASE.error_class) { @entangler.before }
     end
 
     it 'should succesfully finish after retrying' do
@@ -105,7 +105,7 @@ describe Lhm::Entangler do
       ar_connection.stubs(:execute)
                    .returns([["dummy"]], [["dummy"]], [["dummy"]])
                    .then
-                   .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')
+                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
                    .returns([["dummy"]])
       ar_connection.stubs(:active?).returns(true)
@@ -127,19 +127,19 @@ describe Lhm::Entangler do
       ar_connection.stubs(:execute)
                    .returns([["dummy"]], [["dummy"]], [["dummy"]]) # initial
                    .then
-                   .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')
+                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
                    .returns([["dummy"]]) # reconnect 1
                    .then
-                   .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')
+                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
                    .returns([["dummy"]])  # reconnect 2
                    .then
-                   .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')
+                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
                    .returns([["dummy"]])  # reconnect 3
                    .then
-                   .raises(Mysql2::Error, 'Lock wait timeout exceeded; try restarting transaction')  # final error
+                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')  # final error
       ar_connection.stubs(:active?).returns(true)
 
       connection = Lhm::Connection.new(connection: ar_connection, options: {
@@ -152,7 +152,7 @@ describe Lhm::Entangler do
 
       @entangler = Lhm::Entangler.new(@migration, connection)
 
-      assert_raises(Mysql2::Error) { @entangler.before }
+      assert_raises(DATABASE.error_class) { @entangler.before }
     end
 
     describe 'super long table names' do
