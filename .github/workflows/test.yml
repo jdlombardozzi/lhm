@@ -25,7 +25,7 @@ jobs:
             activerecord-version: "7.0"
             mysql_version: "8.0"
           - ruby-version: "3.2"
-            activerecord-version: "7.1.0.beta1"
+            activerecord-version: "7.1"
             mysql_version: "8.0"
     steps:
       - uses: actions/checkout@v2
