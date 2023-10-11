@@ -42,6 +42,7 @@ GEM
     simplecov_json_formatter (0.1.4)
     thor (1.2.2)
     toxiproxy (2.0.2)
+    trilogy (2.6.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
 
@@ -63,6 +64,7 @@ DEPENDENCIES
   rake
   simplecov
   toxiproxy
+  trilogy
 
 BUNDLED WITH
    2.2.22
