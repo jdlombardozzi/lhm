@@ -75,6 +75,14 @@ module Lhm
       end
     end
 
+    def select_all(query, should_retry: false, log_prefix: nil)
+      if should_retry
+        exec_with_retries(:select_all, query, log_prefix)
+      else
+        exec(:select_all, query)
+      end
+    end
+
     private
 
     def exec(method, sql)

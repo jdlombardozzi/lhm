@@ -63,10 +63,9 @@ describe Lhm::Entangler do
     it 'should retry trigger creation when it hits a lock wait timeout' do
       tries = 1
       ar_connection = mock()
+      ar_connection.stubs(:select_value).returns("dummy")
       ar_connection.stubs(:execute)
-                       .returns([["dummy"]], [["dummy"]], [["dummy"]])
-                       .then
-                       .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
+                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
       ar_connection.stubs(:active?).returns(true)
 
       connection = Lhm::Connection.new(connection: ar_connection, options: {
@@ -84,9 +83,8 @@ describe Lhm::Entangler do
 
     it 'should not retry trigger creation with other mysql errors' do
       ar_connection = mock()
+      ar_connection.stubs(:select_value).returns("dummy")
       ar_connection.stubs(:execute)
-                   .returns([["dummy"]], [["dummy"]], [["dummy"]])
-                   .then
                    .raises(DATABASE.error_class, 'The MySQL server is running with the --read-only option so it cannot execute this statement.')
       ar_connection.stubs(:active?).returns(true)
       connection = Lhm::Connection.new(connection: ar_connection, options: {
@@ -102,9 +100,8 @@ describe Lhm::Entangler do
 
     it 'should succesfully finish after retrying' do
       ar_connection = mock()
+      ar_connection.stubs(:select_value).returns("dummy")
       ar_connection.stubs(:execute)
-                   .returns([["dummy"]], [["dummy"]], [["dummy"]])
-                   .then
                    .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
                    .returns([["dummy"]])
@@ -124,20 +121,13 @@ describe Lhm::Entangler do
 
     it 'should retry as many times as specified by configuration' do
       ar_connection = mock()
+      ar_connection.stubs(:select_value).returns("dummy")
       ar_connection.stubs(:execute)
-                   .returns([["dummy"]], [["dummy"]], [["dummy"]]) # initial
+                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
                    .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
-                   .returns([["dummy"]]) # reconnect 1
-                   .then
                    .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
-                   .then
-                   .returns([["dummy"]])  # reconnect 2
-                   .then
-                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
-                   .then
-                   .returns([["dummy"]])  # reconnect 3
                    .then
                    .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')  # final error
       ar_connection.stubs(:active?).returns(true)

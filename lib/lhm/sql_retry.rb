@@ -105,9 +105,7 @@ module Lhm
     def mysql_single_value(name)
       query = Lhm::ProxySQLHelper.tagged("SELECT #{name} LIMIT 1")
 
-      @connection.execute(query).to_a.first.tap do |record|
-        return record&.first
-      end
+      @connection.select_value(query)
     end
 
     def same_host_as_initial?

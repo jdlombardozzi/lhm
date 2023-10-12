@@ -20,7 +20,7 @@ describe Lhm::Chunker do
     @destination = Lhm::Table.new('bar')
     @migration = Lhm::Migration.new(@origin, @destination)
     @connection = mock()
-    @connection.stubs(:execute).returns([["dummy"]])
+    @connection.stubs(:select_value).returns("dummy")
     # This is a poor man's stub
     @throttler = Object.new
     def @throttler.run
@@ -42,11 +42,11 @@ describe Lhm::Chunker do
         5
       end
 
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 4/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(7)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 8 order by id limit 1 offset 4/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(21)
-      @connection.expects(:update).with(regexp_matches(/between 1 and 7/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 8 and 10/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:execute).twice.with(regexp_matches(/show warnings/),EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 4/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(7)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 8 order by id limit 1 offset 4/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(21)
+      @connection.expects(:update).with(regexp_matches(/between 1 and 7/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 8 and 10/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:select_all).twice.with(regexp_matches(/show warnings/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
 
       @chunker.run
     end
@@ -57,17 +57,17 @@ describe Lhm::Chunker do
         2
       end
 
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 3 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(4)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 5 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(6)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 7 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(8)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 9 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(10)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 3 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(4)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 5 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(6)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 7 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(8)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 9 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(10)
 
-      @connection.expects(:update).with(regexp_matches(/between 1 and 2/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 3 and 4/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 5 and 6/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 7 and 8/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 9 and 10/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 1 and 2/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 3 and 4/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 5 and 6/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 7 and 8/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 9 and 10/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
 
       @chunker.run
     end
@@ -84,17 +84,17 @@ describe Lhm::Chunker do
         end
       end
 
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 3 order by id limit 1 offset 2/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(5)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 6 order by id limit 1 offset 2/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(8)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 9 order by id limit 1 offset 2/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(nil)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 3 order by id limit 1 offset 2/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(5)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 6 order by id limit 1 offset 2/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(8)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 9 order by id limit 1 offset 2/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(nil)
 
-      @connection.expects(:update).with(regexp_matches(/between 1 and 2/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 3 and 5/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 6 and 8/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 9 and 10/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 1 and 2/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 3 and 5/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 6 and 8/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 9 and 10/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
 
-      @connection.expects(:execute).twice.with(regexp_matches(/show warnings/),EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
+      @connection.expects(:select_all).twice.with(regexp_matches(/show warnings/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
 
       @chunker.run
     end
@@ -104,8 +104,8 @@ describe Lhm::Chunker do
                                                            :start     => 1,
                                                            :limit     => 1)
 
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 0/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(nil)
-      @connection.expects(:update).with(regexp_matches(/between 1 and 1/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 0/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(nil)
+      @connection.expects(:update).with(regexp_matches(/between 1 and 1/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
 
       @chunker.run
     end
@@ -118,17 +118,17 @@ describe Lhm::Chunker do
         2
       end
 
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 2 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(3)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 4 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(5)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 6 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(7)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 8 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(9)
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 10 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(nil)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 2 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(3)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 4 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(5)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 6 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(7)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 8 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(9)
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 10 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(nil)
 
-      @connection.expects(:update).with(regexp_matches(/between 2 and 3/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 4 and 5/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 6 and 7/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 8 and 9/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
-      @connection.expects(:update).with(regexp_matches(/between 10 and 10/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
+      @connection.expects(:update).with(regexp_matches(/between 2 and 3/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 4 and 5/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 6 and 7/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 8 and 9/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(2)
+      @connection.expects(:update).with(regexp_matches(/between 10 and 10/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
 
       @chunker.run
     end
@@ -142,9 +142,9 @@ describe Lhm::Chunker do
         2
       end
 
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
-      @connection.expects(:update).with(regexp_matches(/where \(foo.created_at > '2013-07-10' or foo.baz = 'quux'\) and `foo`/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
-      @connection.expects(:execute).with(regexp_matches(/show warnings/),EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
+      @connection.expects(:update).with(regexp_matches(/where \(foo.created_at > '2013-07-10' or foo.baz = 'quux'\) and `foo`/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
+      @connection.expects(:select_all).with(regexp_matches(/show warnings/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
 
       def @migration.conditions
         "where foo.created_at > '2013-07-10' or foo.baz = 'quux'"
@@ -162,9 +162,9 @@ describe Lhm::Chunker do
         2
       end
 
-      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/),EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
-      @connection.expects(:update).with(regexp_matches(/inner join bar on foo.id = bar.foo_id and/),EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
-      @connection.expects(:execute).with(regexp_matches(/show warnings/),EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
+      @connection.expects(:select_value).with(regexp_matches(/where id >= 1 order by id limit 1 offset 1/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns(2)
+      @connection.expects(:update).with(regexp_matches(/inner join bar on foo.id = bar.foo_id and/i), EXPECTED_RETRY_FLAGS_CHUNK_INSERT).returns(1)
+      @connection.expects(:select_all).with(regexp_matches(/show warnings/i), EXPECTED_RETRY_FLAGS_CHUNKER).returns([])
 
       def @migration.conditions
         'inner join bar on foo.id = bar.foo_id'

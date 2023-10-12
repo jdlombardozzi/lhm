@@ -35,8 +35,11 @@ DATABASE =
   when 'trilogy'
     require 'trilogy'
 
-    if ActiveRecord::VERSION::MAJOR < 7 || (ActiveRecord::VERSION::MAJOR == 7 && ActiveRecord::VERSION::MINOR == 0)
+    if ActiveRecord.version < ::Gem::Version.new('7.1.0')
       require 'activerecord-trilogy-adapter'
+      require 'trilogy_adapter/connection'
+
+      ActiveRecord::Base.public_send :extend, TrilogyAdapter::Connection
     end
 
     Database.new('trilogy', Trilogy, Trilogy::BaseError, Trilogy::TimeoutError)
