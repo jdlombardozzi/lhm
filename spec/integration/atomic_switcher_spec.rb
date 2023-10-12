@@ -33,8 +33,8 @@ describe Lhm::AtomicSwitcher do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(true)
       ar_connection.stubs(:active?).returns(true)
-      ar_connection.stubs(:execute).returns([["dummy"]], [["dummy"]], [["dummy"]])
-                   .then
+      ar_connection.stubs(:select_value).returns("dummy")
+      ar_connection.stubs(:execute)
                    .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
                    .then
                    .returns([["dummy"]]) # Matches initial host -> triggers retry
@@ -62,15 +62,11 @@ describe Lhm::AtomicSwitcher do
       ar_connection = mock()
       ar_connection.stubs(:data_source_exists?).returns(true)
       ar_connection.stubs(:active?).returns(true)
-      ar_connection.stubs(:execute).returns([["dummy"]], [["dummy"]], [["dummy"]])
-                   .then
+      ar_connection.stubs(:select_value).returns("dummy")
+      ar_connection.stubs(:execute)
                    .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
                    .then
-                   .returns([["dummy"]]) # triggers retry 1
-                   .then
                    .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.')
-                   .then
-                   .returns([["dummy"]]) # triggers retry 2
                    .then
                    .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction.') # triggers retry 2
 

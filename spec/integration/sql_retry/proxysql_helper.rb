@@ -2,7 +2,7 @@ class ProxySQLHelper
   class << self
     # Flips the destination hostgroup for /maintenance:lhm/ from 0 (i.e. writer) to 1 (i.e. reader)
     def with_lhm_hostgroup_flip
-      conn = Mysql2::Client.new(
+      conn = DATABASE.client.new(
         host: '127.0.0.1',
         username: "remote-admin",
         password: "password",

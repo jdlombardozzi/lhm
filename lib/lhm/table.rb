@@ -39,10 +39,9 @@ module Lhm
       end
 
       def ddl
-        sql = "show create table `#{ @table_name }`"
-        specification = nil
-        @connection.execute(sql).each { |row| specification = row.last }
-        specification
+        query = "SHOW CREATE TABLE #{ @connection.quote_table_name(@table_name) }"
+
+        @connection.select_one(query)["Create Table"]
       end
 
       def parse

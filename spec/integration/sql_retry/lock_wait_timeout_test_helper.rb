@@ -16,7 +16,7 @@ class LockWaitTimeoutTestHelper
 
     raise ArgumentError, "innodb_lock_wait_timeout must be an integer" if innodb_lock_wait_timeout.class != Integer
 
-    result = @main_conn.query("SELECT VERSION()")
+    result = DATABASE.query(@main_conn, "SELECT VERSION()")
     mysql_version = result.to_a.dig(0, "VERSION()").split("-", 2)[0]
 
     if mysql_version.start_with?("8")
@@ -59,7 +59,7 @@ class LockWaitTimeoutTestHelper
   end
 
   def record_count(connection = main_conn)
-    response = connection.query("SELECT COUNT(id) FROM #{test_table_name}")
+    response = mysql_exec(connection, "SELECT COUNT(id) FROM #{test_table_name}")
     response.first.values.first
   end
 
@@ -87,7 +87,7 @@ class LockWaitTimeoutTestHelper
   attr_reader :main_conn, :lock_duration, :innodb_lock_wait_timeout
 
   def new_mysql_connection
-    Mysql2::Client.new(
+    DATABASE.client.new(
       host: '127.0.0.1',
       username: db_config['master']['user'],
       password: db_config['master']['password'],
@@ -111,8 +111,8 @@ class LockWaitTimeoutTestHelper
   private
 
   def mysql_exec(connection, statement)
-    if connection.class == Mysql2::Client
-      connection.query(statement)
+    if connection.class == DATABASE.client
+      DATABASE.query(connection, statement)
     elsif connection.class.to_s.include?("ActiveRecord")
       connection.execute(statement)
     else

@@ -26,14 +26,14 @@ module Lhm
     end
 
     def atomic_switch
-      "rename table `#{ @origin.name }` to `#{ @migration.archive_name }`, " \
-      "`#{ @destination.name }` to `#{ @origin.name }`"
+      "RENAME TABLE `#{ @origin.name }` TO `#{ @migration.archive_name }`, " \
+      "`#{ @destination.name }` TO `#{ @origin.name }`"
     end
 
     def validate
       unless @connection.data_source_exists?(@origin.name) &&
         @connection.data_source_exists?(@destination.name)
-        error "`#{ @origin.name }` and `#{ @destination.name }` must exist"
+        error "`#{ @origin.name }` AND `#{ @destination.name }` MUST EXIST"
       end
     end
 

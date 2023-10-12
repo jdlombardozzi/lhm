@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    lhm-shopify (4.0.0)
+    lhm-shopify (4.1.0)
       retriable (>= 3.0.0)
 
 GEM
@@ -12,6 +12,9 @@ GEM
     activerecord (6.1.0)
       activemodel (= 6.1.0)
       activesupport (= 6.1.0)
+    activerecord-trilogy-adapter (3.1.2)
+      activerecord (>= 6.0.a, < 7.1.a)
+      trilogy (>= 2.4.0)
     activesupport (6.1.0)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
@@ -43,9 +46,10 @@ GEM
     simplecov_json_formatter (0.1.4)
     thor (1.2.2)
     toxiproxy (2.0.2)
+    trilogy (2.6.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    zeitwerk (2.6.11)
+    zeitwerk (2.6.12)
 
 PLATFORMS
   arm64-darwin-21
@@ -55,6 +59,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord (= 6.1.0)
+  activerecord-trilogy-adapter
   after_do
   appraisal
   byebug
@@ -65,6 +70,7 @@ DEPENDENCIES
   rake
   simplecov
   toxiproxy
+  trilogy
 
 BUNDLED WITH
    2.2.22

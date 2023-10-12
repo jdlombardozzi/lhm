@@ -20,7 +20,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_HOST: mysql-1
     ports:
-      - "33006:3306"
+      - "13006:3306"
   #  Reader
   mysql-2:
     container_name: mysql-2
@@ -42,7 +42,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_HOST: mysql-2
     ports:
-      - "33007:3306"
+      - "13007:3306"
   #  Proxysql
   proxysql:
     container_name: proxysql
@@ -52,7 +52,7 @@ services:
       - ./scripts/proxysql/proxysql.cnf:/etc/proxysql.cnf
     command: "proxysql -c /etc/proxysql.cnf -f --idle-threads"
     ports:
-      - "33005:3306"
+      - "13005:3306"
       - "6032:6032"
   toxiproxy:
     container_name: toxiproxy

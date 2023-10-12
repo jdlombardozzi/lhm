@@ -79,9 +79,9 @@ module Lhm
     private
 
     def raise_on_non_pk_duplicate_warning
-      @connection.execute("show warnings", should_retry: true, log_prefix: LOG_PREFIX).each do |level, code, message|
-        unless message.match?(/Duplicate entry .+ for key 'PRIMARY'/)
-          m = "Unexpected warning found for inserted row: #{message}"
+      @connection.select_all("SHOW WARNINGS", should_retry: true, log_prefix: LOG_PREFIX).each do |row|
+        unless row["Message"].match?(/Duplicate entry .+ for key 'PRIMARY'/)
+          m = "Unexpected warning found for inserted row: #{row["Message"]}"
           Lhm.logger.warn(m)
           raise Error.new(m) if @raise_on_warnings
         end
@@ -100,7 +100,7 @@ module Lhm
     end
 
     def upper_id(next_id, stride)
-      sql = "select id from `#{ @migration.origin_name }` where id >= #{ next_id } order by id limit 1 offset #{ stride - 1}"
+      sql = "SELECT id FROM `#{ @migration.origin_name }` WHERE id >= #{ next_id } ORDER BY id LIMIT 1 OFFSET #{ stride - 1}"
       top = @connection.select_value(sql, should_retry: true, log_prefix: LOG_PREFIX)
 
       [top ? top.to_i : @limit, @limit].min

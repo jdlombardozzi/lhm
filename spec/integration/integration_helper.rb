@@ -22,7 +22,7 @@ module IntegrationHelper
   def self.included(base)
     base.after(:each) do
       cleanup_connection = new_mysql_connection
-      results = cleanup_connection.query("SELECT table_name FROM information_schema.tables WHERE table_schema = '#{$db_name}';")
+      results = DATABASE.query(cleanup_connection, "SELECT table_name FROM information_schema.tables WHERE table_schema = '#{$db_name}';")
       table_names_for_cleanup = results.map { |row| "#{$db_name}." + row.values.first }
       cleanup_connection.query("DROP TABLE IF EXISTS #{table_names_for_cleanup.join(', ')};") if table_names_for_cleanup.length > 0
     end
@@ -89,7 +89,7 @@ module IntegrationHelper
 
   def ar_conn(host, port, user, password)
     ActiveRecord::Base.establish_connection(
-      :adapter  => 'mysql2',
+      :adapter  => DATABASE.adapter,
       :host     => host,
       :username => user,
       :port     => port,
@@ -179,7 +179,7 @@ module IntegrationHelper
   end
 
   def new_mysql_connection(role='master')
-    Mysql2::Client.new(
+    DATABASE.client.new(
       host: '127.0.0.1',
       database: $db_name,
       username: $db_config[role]['user'],

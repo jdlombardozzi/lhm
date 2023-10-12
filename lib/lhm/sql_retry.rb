@@ -105,9 +105,7 @@ module Lhm
     def mysql_single_value(name)
       query = Lhm::ProxySQLHelper.tagged("SELECT #{name} LIMIT 1")
 
-      @connection.execute(query).to_a.first.tap do |record|
-        return record&.first
-      end
+      @connection.select_value(query)
     end
 
     def same_host_as_initial?
@@ -140,32 +138,22 @@ module Lhm
             log_with_prefix("Reconnected to wrong host. Started migration on: #{@initial_hostname} (server_id: #{@initial_server_id}), but reconnected to: #{hostname} (server_id: #{server_id}).", :error)
             return false
           end
-        rescue StandardError => e
+        rescue ActiveRecord::ConnectionNotEstablished
           # Retry if ActiveRecord cannot reach host
-          next if /Lost connection to MySQL server at 'reading initial communication packet'/ === e.message
+          next
+        rescue StandardError => e
           log_with_prefix("Encountered error: [#{e.class}] #{e.message}. Will stop reconnection procedure.", :info)
           return false
         end
       end
+
       false
     end
 
     # For a full list of configuration options see https://github.com/kamui/retriable
     def default_retry_config
       {
-        on: {
-          StandardError => [
-            /Lock wait timeout exceeded/,
-            /Timeout waiting for a response from the last query/,
-            /Deadlock found when trying to get lock/,
-            /Query execution was interrupted/,
-            /Lost connection to MySQL server during query/,
-            /Max connect timeout reached/,
-            /Unknown MySQL server host/,
-            /connection is locked to hostgroup/,
-            /The MySQL server is running with the --read-only option so it cannot execute this statement/,
-          ]
-        },
+        on: retriable_mysql2_errors || retriable_trilogy_errors,
         multiplier: 1, # each successive interval grows by this factor
         base_interval: 1, # the initial interval in seconds between tries.
         tries: 20, # Number of attempts to make at running your code block (includes initial attempt).
@@ -175,6 +163,36 @@ module Lhm
           log_with_prefix("#{exception.class}: '#{exception.message}' - #{try_number} tries in #{total_elapsed_time} seconds and #{next_interval} seconds until the next try.", :error)
         end
       }.freeze
+    end
+
+    def retriable_mysql2_errors
+      return unless defined?(Mysql2::Error)
+
+      {
+        StandardError => [
+          /Lock wait timeout exceeded/,
+          /Timeout waiting for a response from the last query/,
+          /Deadlock found when trying to get lock/,
+          /Query execution was interrupted/,
+          /Lost connection to MySQL server during query/,
+          /Max connect timeout reached/,
+          /Unknown MySQL server host/,
+          /connection is locked to hostgroup/,
+          /The MySQL server is running with the --read-only option so it cannot execute this statement/,
+        ],
+      }
+    end
+
+    def retriable_trilogy_errors
+      return unless defined?(Trilogy::BaseError)
+
+      {
+        ActiveRecord::StatementInvalid => [
+          # Those sometimes appear as Trilogy::TimeoutError, and sometimes as ActiveRecord::StatementInvalid
+          /Lock wait timeout exceeded/,
+        ],
+        Trilogy::ConnectionError => nil,
+      }
     end
   end
 end

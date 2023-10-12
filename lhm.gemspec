@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'after_do'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'mysql2'
+  s.add_development_dependency 'trilogy'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'toxiproxy'
   s.add_development_dependency 'appraisal'

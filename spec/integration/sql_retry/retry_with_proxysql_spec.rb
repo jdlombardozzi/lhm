@@ -1,5 +1,4 @@
 require 'minitest/autorun'
-require 'mysql2'
 require 'lhm'
 require 'toxiproxy'
 
@@ -50,7 +49,7 @@ describe Lhm::SqlRetry, "ProxiSQL tests for LHM retry" do
       end
     end
 
-    assert_equal @connection.execute("Select * from #{DBConnectionHelper.test_table_name} WHERE id=2000").to_a.first.first, 2000
+    assert_equal 2000, @connection.select_one("SELECT * FROM #{DBConnectionHelper.test_table_name} WHERE id=2000")["id"]
 
     logs = @logger.string.split("\n")
 
