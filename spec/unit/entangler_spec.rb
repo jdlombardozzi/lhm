@@ -65,7 +65,7 @@ describe Lhm::Entangler do
       ar_connection = mock()
       ar_connection.stubs(:select_value).returns("dummy")
       ar_connection.stubs(:execute)
-                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
+                   .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction')
       ar_connection.stubs(:active?).returns(true)
 
       connection = Lhm::Connection.new(connection: ar_connection, options: {
@@ -78,7 +78,7 @@ describe Lhm::Entangler do
 
       @entangler = Lhm::Entangler.new(@migration, connection)
 
-      assert_raises(DATABASE.error_class) { @entangler.before }
+      assert_raises(ActiveRecord::StatementInvalid) { @entangler.before }
     end
 
     it 'should not retry trigger creation with other mysql errors' do
@@ -102,7 +102,7 @@ describe Lhm::Entangler do
       ar_connection = mock()
       ar_connection.stubs(:select_value).returns("dummy")
       ar_connection.stubs(:execute)
-                   .raises(DATABASE.error_class, 'Lock wait timeout exceeded; try restarting transaction')
+                   .raises(ActiveRecord::StatementInvalid, 'Lock wait timeout exceeded; try restarting transaction')
                    .then
                    .returns([["dummy"]])
       ar_connection.stubs(:active?).returns(true)

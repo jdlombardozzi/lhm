@@ -187,15 +187,11 @@ module Lhm
       return unless defined?(Trilogy::BaseError)
 
       {
-        StandardError => [
+        ActiveRecord::StatementInvalid => [
           # Those sometimes appear as Trilogy::TimeoutError, and sometimes as ActiveRecord::StatementInvalid
           /Lock wait timeout exceeded/,
         ],
-        Trilogy::BaseConnectionError => nil,
-        Trilogy::ConnectionClosed => nil,
-        Trilogy::ConnectionRefusedError => nil,
-        Trilogy::ConnectionResetError => nil,
-        Trilogy::TimeoutError => nil,
+        Trilogy::ConnectionError => nil,
       }
     end
   end

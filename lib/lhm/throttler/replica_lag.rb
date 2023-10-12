@@ -96,7 +96,7 @@ module Lhm
       end
 
       def self.client_error
-        defined?(Mysql2::Error) ? Mysql2::Error : Trilogy::BaseError
+        defined?(Mysql2::Error) ? Mysql2::Error : Trilogy::Error
       end
 
       def initialize(host, connection_config = nil)
