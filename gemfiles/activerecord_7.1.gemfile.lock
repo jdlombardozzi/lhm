@@ -1,19 +1,19 @@
 PATH
   remote: ..
   specs:
-    lhm-shopify (4.0.0)
+    lhm-shopify (4.1.0)
       retriable (>= 3.0.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (7.1.0)
-      activesupport (= 7.1.0)
-    activerecord (7.1.0)
-      activemodel (= 7.1.0)
-      activesupport (= 7.1.0)
+    activemodel (7.1.1)
+      activesupport (= 7.1.1)
+    activerecord (7.1.1)
+      activemodel (= 7.1.1)
+      activesupport (= 7.1.1)
       timeout (>= 0.4.0)
-    activesupport (7.1.0)
+    activesupport (7.1.1)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
@@ -66,7 +66,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activerecord (= 7.1.0)
+  activerecord (= 7.1.1)
   after_do
   appraisal
   byebug

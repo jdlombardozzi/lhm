@@ -1,5 +1,9 @@
 # Unreleased
+
+# 4.1.0 (Oct, 2023)
 * Test against MySQL 8.0.
+* Test against Ruby Head.
+* Add support for Trilogy MySQL client. It's works with built in ActiveRecord adapter from Rails 7.1 on, as well as dedicated one in older Rails versions.
 
 # 4.0.0 (Sep, 2023)
 * Deprecate `SlaveLag` throttler class name. Use `ReplicaLag` instead (https://github.com/Shopify/lhm/pull/144)

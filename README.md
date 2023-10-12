@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/Shopify/lhm/actions/workflows/test.yml/badge.svg)](https://github.com/Shopify/lhm/actions/workflows/test.yml)
 
-This is the Shopify fork of [SoundCloud's LHM](https://github.com/soundcloud/lhm). The 
+This is the Shopify fork of [SoundCloud's LHM](https://github.com/soundcloud/lhm). The
 following description, originally from SoundCloud (with minor updates by Shopify),
 gives some of the flavor around its original creation, and its choice of name...
 
@@ -112,7 +112,7 @@ tables must be cleaned up.
 ### Usage with ProxySQL
 LHM can recover from connection loss. However, when used in conjunction with ProxySQL, there are multiple ways that
 connection loss could induce data loss (if triggered by a failover). Therefore  it will perform additional checks to
-ensure that the MySQL host stays consistent across the schema migrations if the feature is enabled. 
+ensure that the MySQL host stays consistent across the schema migrations if the feature is enabled.
 This is done by tagging every query with `/*maintenance:lhm*/`, which will be recognized by ProxySQL.
 However, to get this feature working, a new ProxySQL query rule must be added.
 ```cnf
@@ -127,7 +127,7 @@ However, to get this feature working, a new ProxySQL query rule must be added.
 This will ensure that all relevant queries are forwarded to the current writer.
 
 Also, ProxySQL disables [multiplexing](https://proxysql.com/documentation/multiplexing/) for `select` on `@@` variables.
-Therefore, the following rules must be added to ensure that queries (even if tagged with `/*maintenance:lhm*/`) get 
+Therefore, the following rules must be added to ensure that queries (even if tagged with `/*maintenance:lhm*/`) get
 forwarded to the right target.
 ```cnf
 {
@@ -144,7 +144,7 @@ forwarded to the right target.
 }
 ```
 
-Once these changes are added to the ProxySQL configuration (either through `.cnf` or dynamically through the admin interface), 
+Once these changes are added to the ProxySQL configuration (either through `.cnf` or dynamically through the admin interface),
 the feature can be enabled. This is done by adding this flag when providing options to the migration:
 ```ruby
  Lhm.change_table(..., options: {reconnect_with_consistent_host: true}) do |t|
@@ -285,7 +285,7 @@ To run the tests:
 ```bash
 bundle exec rake unit # unit tests
 bundle exec rake integration # integration tests
-bundle exec rake unit # all tests
+bundle exec rake specs # all tests
 ```
 
 You can run an individual test as follows:
@@ -311,12 +311,12 @@ open coverage/index.html
 ```
 
 ### Merging for a new version
-When creating a PR for a new version, make sure that th version has been bumped in `lib/lhm/version.rb`. Then run the following code snippet to ensure the everything is consistent, otherwise 
+When creating a PR for a new version, make sure that th version has been bumped in `lib/lhm/version.rb`. Then run the following code snippet to ensure the everything is consistent, otherwise
 the gem will not publish.
 ```bash
 bundle install
 bundle update
-bundle exec appraisals install
+bundle exec appraisal install
 ```
 
 ### Podman Compose
