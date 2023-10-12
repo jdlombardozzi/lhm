@@ -42,7 +42,7 @@ describe Lhm::SqlRetry do
 
     exception = assert_raises { @helper.trigger_wait_lock }
 
-    assert_match /Lock wait timeout exceeded; try restarting transaction/, exception.message
+    assert_match Regexp.new("Lock wait timeout exceeded; try restarting transaction"), exception.message
     assert_equal DATABASE.timeout_error, exception.class
 
     assert_equal 2, @helper.record_count # no records inserted
@@ -117,7 +117,7 @@ describe Lhm::SqlRetry do
 
     exception = assert_raises { @helper.trigger_wait_lock }
 
-    assert_match /Lock wait timeout exceeded; try restarting transaction/, exception.message
+    assert_match Regexp.new("Lock wait timeout exceeded; try restarting transaction"), exception.message
     assert_equal DATABASE.timeout_error, exception.class
 
     assert_equal 2, @helper.record_count # no records inserted

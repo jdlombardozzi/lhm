@@ -92,11 +92,11 @@ module Lhm
       attr_reader :host, :connection
 
       def self.client
-        Trilogy
+        defined?(Mysql2::Client) ? Mysql2::Client : Trilogy
       end
 
       def self.client_error
-        Trilogy::BaseError
+        defined?(Mysql2::Error) ? Mysql2::Error : Trilogy::BaseError
       end
 
       def initialize(host, connection_config = nil)
