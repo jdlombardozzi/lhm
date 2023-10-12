@@ -34,6 +34,11 @@ DATABASE =
   case ENV['DATABASE_ADAPTER']
   when 'trilogy'
     require 'trilogy'
+
+    if ActiveRecord::VERSION::MAJOR < 7 || (ActiveRecord::VERSION::MAJOR == 7 && ActiveRecord::VERSION::MINOR == 0)
+      require 'activerecord-trilogy-adapter'
+    end
+
     Database.new('trilogy', Trilogy, Trilogy::BaseError, Trilogy::TimeoutError)
   else
     require 'mysql2'
