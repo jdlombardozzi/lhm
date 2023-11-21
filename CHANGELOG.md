@@ -1,5 +1,8 @@
 # Unreleased
 
+# 4.1.1 (Nov, 2023)
+* Fix check for warnings against PK in MySQL 8+
+
 # 4.1.0 (Oct, 2023)
 * Test against MySQL 8.0.
 * Test against Ruby Head.
