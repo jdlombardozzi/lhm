@@ -31,7 +31,6 @@ describe Lhm::Chunker do
       replica do
         value(count_all(@destination.name)).must_equal(1)
       end
-
     end
 
     it 'should copy and ignore duplicate primary key' do
@@ -39,7 +38,7 @@ describe Lhm::Chunker do
       execute("insert into origin set id = 1002 ")
       execute("insert into destination set id = 1002 ")
 
-      Lhm::Chunker.new(@migration, connection, {throttler: throttler, printer: printer} ).run
+      Lhm::Chunker.new(@migration, connection, {raise_on_warnings: true, throttler: throttler, printer: printer} ).run
 
       replica do
         value(count_all(@destination.name)).must_equal(2)
@@ -55,7 +54,7 @@ describe Lhm::Chunker do
       execute("insert into composite_primary_key set id = 1002, shop_id = 1")
       execute("insert into composite_primary_key_dest set id = 1002, shop_id = 1")
 
-      Lhm::Chunker.new(migration, connection, {throttler: throttler, printer: printer} ).run
+      Lhm::Chunker.new(migration, connection, {raise_on_warning: true, throttler: throttler, printer: printer} ).run
 
       replica do
         value(count_all(destination.name)).must_equal(2)
