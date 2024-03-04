@@ -67,7 +67,11 @@ module Lhm
     # @param [String] name Name of the column to change
     # @param [String] definition Valid SQL column definition
     def change_column(name, definition)
-      ddl('alter table `%s` modify column `%s` %s' % [@name, name, definition])
+      if definition.match?(/^(DROP|SET) DEFAULT/i)
+        ddl('alter table `%s` alter column `%s` %s' % [@name, name, definition])
+      else
+        ddl('alter table `%s` modify column `%s` %s' % [@name, name, definition])
+      end
     end
 
     # Rename an existing column.

@@ -116,6 +116,22 @@ describe Lhm::Migrator do
         'alter table `lhmn_alt` modify column `logins` INT(11)'
       ])
     end
+
+    it "should drop a default" do
+      @creator.change_column('foo', 'DROP DEFAULT')
+
+      value(@creator.statements).must_equal([
+        'alter table `lhmn_alt` alter column `foo` DROP DEFAULT'
+      ])
+    end
+
+    it "should set a default" do
+      @creator.change_column('foo', "SET DEFAULT 'bar'")
+
+      value(@creator.statements).must_equal([
+        "alter table `lhmn_alt` alter column `foo` SET DEFAULT 'bar'"
+      ])
+    end
   end
 
   describe 'direct changes' do
