@@ -2,5 +2,5 @@
 # Schmidt
 
 module Lhm
-  VERSION = '4.1.1'
+  VERSION = '4.2.0'
 end
