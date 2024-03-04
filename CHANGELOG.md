@@ -1,5 +1,8 @@
 # Unreleased
 
+# 4.2.0 (Mar, 2024)
+* Support `DROP DEFAULT` & `SET DEFAULT` in `change_column` operations.
+
 # 4.1.1 (Nov, 2023)
 * Fix check for warnings against PK in MySQL 8+
 
