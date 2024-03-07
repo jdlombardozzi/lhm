@@ -186,7 +186,7 @@ module Lhm
     def retriable_trilogy_errors
       return unless defined?(Trilogy::BaseError)
 
-      {
+      errors = {
         ActiveRecord::StatementInvalid => [
           /Lock wait timeout exceeded/,
           /Timeout waiting for a response from the last query/,
@@ -200,6 +200,12 @@ module Lhm
         ],
         Trilogy::ConnectionError => nil,
       }
+
+      if ActiveRecord::VERSION::STRING >= "7.1"
+        errors[ActiveRecord::ConnectionFailed] = nil
+      end
+
+      errors
     end
   end
 end
