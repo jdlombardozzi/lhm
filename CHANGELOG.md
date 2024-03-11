@@ -1,4 +1,6 @@
 # Unreleased
+
+# 4.2.1 (Mar, 2024)
 * Retry more errors when using Trilogy.
 
 # 4.2.0 (Mar, 2024)
