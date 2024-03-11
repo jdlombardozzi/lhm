@@ -186,13 +186,26 @@ module Lhm
     def retriable_trilogy_errors
       return unless defined?(Trilogy::BaseError)
 
-      {
+      errors = {
         ActiveRecord::StatementInvalid => [
-          # Those sometimes appear as Trilogy::TimeoutError, and sometimes as ActiveRecord::StatementInvalid
           /Lock wait timeout exceeded/,
+          /Timeout waiting for a response from the last query/,
+          /Deadlock found when trying to get lock/,
+          /Query execution was interrupted/,
+          /Lost connection to MySQL server during query/,
+          /Max connect timeout reached/,
+          /Unknown MySQL server host/,
+          /connection is locked to hostgroup/,
+          /The MySQL server is running with the --read-only option so it cannot execute this statement/,
         ],
         Trilogy::ConnectionError => nil,
       }
+
+      if ActiveRecord::VERSION::STRING >= "7.1"
+        errors[ActiveRecord::ConnectionFailed] = nil
+      end
+
+      errors
     end
   end
 end
