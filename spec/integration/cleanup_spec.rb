@@ -2,6 +2,7 @@
 # Schmidt
 
 require File.expand_path(File.dirname(__FILE__)) + '/integration_helper'
+require 'ostruct'
 
 describe Lhm, 'cleanup' do
   include IntegrationHelper

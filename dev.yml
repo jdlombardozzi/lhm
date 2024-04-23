@@ -5,7 +5,7 @@ up:
           or: [mysql@5.7]
           conflicts: [shopify/shopify/mysql-client, mysql-connector-c, mysql, mysql-client]
       - wget
-  - ruby: 3.2.2
+  - ruby
   - bundler
   - podman
   - custom:
