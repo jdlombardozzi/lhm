@@ -1,5 +1,8 @@
 # Unreleased
 
+# 4.2.2 (Jun, 2024)
+* Avoid using the INSTANT algorithm.
+
 # 4.2.1 (Mar, 2024)
 * Retry more errors when using Trilogy.
 

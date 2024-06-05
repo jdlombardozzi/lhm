@@ -53,7 +53,7 @@ module Lhm
     # @param [String] name Name of the column to add
     # @param [String] definition Valid SQL column definition
     def add_column(name, definition)
-      ddl('alter table `%s` add column `%s` %s' % [@name, name, definition])
+      ddl('alter table `%s` add column `%s` %s, ALGORITHM=INPLACE' % [@name, name, definition])
     end
 
     # Change an existing column to a new definition
@@ -94,7 +94,7 @@ module Lhm
       definition += " COMMENT #{@connection.quote(col[:comment])}" if col[:comment]
       definition += " COLLATE #{@connection.quote(col[:collate])}" if col[:collate]
 
-      ddl('alter table `%s` change column `%s` `%s` %s' % [@name, old, nu, definition])
+      ddl('alter table `%s` change column `%s` `%s` %s, ALGORITHM=INPLACE' % [@name, old, nu, definition])
       @renames[old.to_s] = nu.to_s
     end
 
@@ -108,7 +108,7 @@ module Lhm
     #
     # @param [String] name Name of the column to delete
     def remove_column(name)
-      ddl('alter table `%s` drop `%s`' % [@name, name])
+      ddl('alter table `%s` drop `%s`, ALGORITHM=INPLACE' % [@name, name])
     end
 
     # Add an index to a table
