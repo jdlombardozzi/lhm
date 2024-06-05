@@ -97,7 +97,7 @@ describe Lhm::Migrator do
       @creator.add_column('logins', 'INT(12)')
 
       value(@creator.statements).must_equal([
-        'alter table `lhmn_alt` add column `logins` INT(12)'
+        'alter table `lhmn_alt` add column `logins` INT(12), ALGORITHM=INPLACE'
       ])
     end
 
@@ -105,7 +105,7 @@ describe Lhm::Migrator do
       @creator.remove_column('logins')
 
       value(@creator.statements).must_equal([
-        'alter table `lhmn_alt` drop `logins`'
+        'alter table `lhmn_alt` drop `logins`, ALGORITHM=INPLACE'
       ])
     end
 
@@ -151,10 +151,10 @@ describe Lhm::Migrator do
       value(@creator.statements.length).must_equal(2)
 
       value(@creator.statements[0])
-        .must_equal('alter table `lhmn_alt` add column `first` VARCHAR(64)')
+        .must_equal('alter table `lhmn_alt` add column `first` VARCHAR(64), ALGORITHM=INPLACE')
 
       value(@creator.statements[1])
-        .must_equal('alter table `lhmn_alt` add column `last` VARCHAR(64)')
+        .must_equal('alter table `lhmn_alt` add column `last` VARCHAR(64), ALGORITHM=INPLACE')
     end
   end
 end
