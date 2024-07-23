@@ -1,5 +1,8 @@
 # Unreleased
 
+# 4.2.3 (Jul, 2024)
+* Fix check for warnings against PKs with line breaks
+
 # 4.2.2 (Jun, 2024)
 * Avoid using the INSTANT algorithm.
 
