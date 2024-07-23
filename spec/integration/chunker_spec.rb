@@ -61,6 +61,46 @@ describe Lhm::Chunker do
       end
     end
 
+    it 'should copy and ignore duplicate composite primary key with line breaks' do
+      origin = table_create(:composite_primary_key_with_varchar_columns)
+      destination = table_create(:composite_primary_key_with_varchar_columns_dest)
+      migration = Lhm::Migration.new(origin, destination)
+
+      execute("insert into composite_primary_key_with_varchar_columns set id = 1001, shop_id = 1, owner_type = 'Product', owner_id = 1, namespace = '
+  23
+
+  23
+', `key` = '
+  14
+
+  1
+'")
+      execute("insert into composite_primary_key_with_varchar_columns set id = 1002, shop_id = 1, owner_type = 'Product', owner_id = 1, namespace = '
+  23
+
+  22
+', `key` = '
+  14
+
+  1
+'")
+      execute("insert into composite_primary_key_with_varchar_columns_dest set id = 1002, shop_id = 1, owner_type = 'Product', owner_id = 1, namespace = '
+  23
+
+  22
+', `key` = '
+  14
+
+  1
+'")
+
+      Lhm::Chunker.new(migration, connection, {raise_on_warning: true, throttler: throttler, printer: printer} ).run
+
+      replica do
+        value(count_all(destination.name)).must_equal(2)
+      end
+    end
+
     it 'should copy and raise on unexpected warnings' do
       origin = table_create(:custom_primary_key)
       destination = table_create(:custom_primary_key_dest)
