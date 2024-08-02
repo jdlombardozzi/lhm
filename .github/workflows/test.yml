@@ -40,7 +40,7 @@ jobs:
 
       - name: Setup MySQL and ProxySQL (docker-compose)
         # Might have to change to docker compose up -d (i.e. Compose V2) when the Ubuntu image changes the docker-compose version
-        run: docker-compose -f docker-compose-mysql-${{ matrix.mysql }}.yml up -d
+        run: docker compose -f docker-compose-mysql-${{ matrix.mysql }}.yml up -d
 
       - name: Wait until DBs are alive
         run: ./scripts/helpers/wait-for-dbs.sh
