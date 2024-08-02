@@ -111,6 +111,30 @@ describe Lhm::Throttler do
     end
   end
 
+  describe 'when using backoff functionality' do
+    it 'should backoff by default amount' do
+      @mock.setup_throttler(:time_throttler, stride: 100)
+      @mock.throttler.backoff_stride
+      value(@mock.throttler.stride).must_equal 80
+    end
+
+    it 'should backoff by specified amount' do
+      @mock.setup_throttler(:time_throttler, backoff_reduction_factor: 0.5, stride: 100)
+      @mock.throttler.backoff_stride
+      value(@mock.throttler.stride).must_equal 50
+    end
+
+    it 'should throw an error when backoff exceeds limit' do
+      @mock.setup_throttler(:time_throttler, backoff_reduction_factor: 0.2, stride: 1000, min_stride_size: 900)
+      proc { @mock.throttler.backoff_stride }.must_raise RuntimeError
+    end
+
+    it 'should throw an error when backoff cannot be done anymore' do
+      @mock.setup_throttler(:time_throttler, backoff_reduction_factor: 0.2, stride: 1, min_stride_size: 1)
+      proc { @mock.throttler.backoff_stride }.must_raise RuntimeError
+    end
+  end
+
   describe '#throttler' do
 
     it 'returns the default Time based' do
