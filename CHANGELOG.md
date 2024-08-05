@@ -1,5 +1,9 @@
 # Unreleased
 
+# 4.3.0 (Aug, 2024)
+* Drop support for Ruby 3.0, as it reached its EOL
+* Add support for next Rails version
+
 # 4.2.3 (Jul, 2024)
 * Fix check for warnings against PKs with line breaks
 

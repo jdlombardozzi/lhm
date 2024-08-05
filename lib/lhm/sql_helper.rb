@@ -65,7 +65,7 @@ module Lhm
     end
 
     def struct_key(struct, key)
-      keys = if struct.is_a? Hash
+      keys = if struct.respond_to?(:keys)
                struct.keys
              else
                struct.members
