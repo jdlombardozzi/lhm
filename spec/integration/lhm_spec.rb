@@ -328,8 +328,7 @@ describe Lhm do
           :collate => collation,
         })
 
-        result = select_one('SELECT login from users')
-        result = result['login'] if result.respond_to?(:has_key?)
+        result = select_value('SELECT login from users')
         value(result).must_equal('a user')
       end
     end
@@ -353,8 +352,7 @@ describe Lhm do
           :collate => collation,
         })
 
-        result = select_one('SELECT `fnord` from users')
-        result = result['fnord'] if result.respond_to?(:has_key?)
+        result = select_value('SELECT `fnord` from users')
         value(result).must_equal('Superfriends')
       end
     end
@@ -380,8 +378,7 @@ describe Lhm do
              :collate => 'utf8mb4_unicode_ci',
            })
 
-        result = select_one('SELECT `user_name` from users')
-        result = result['user_name'] if result.respond_to?(:has_key?)
+        result = select_value('SELECT `user_name` from users')
         value(result).must_equal('a user')
       end
     end
@@ -410,8 +407,7 @@ describe Lhm do
            :collate => nil,
          })
 
-        result = select_one('SELECT `ref` from users')
-        result = result['ref'] if result.respond_to?(:has_key?)
+        result = select_value('SELECT `ref` from users')
         value(result).must_equal(10)
       end
     end
@@ -437,8 +433,7 @@ describe Lhm do
            :collate => collation,
          })
 
-        result = select_one('SELECT `fnord` from users')
-        result = result['fnord'] if result.respond_to?(:has_key?)
+        result = select_value('SELECT `fnord` from users')
         assert_nil(result)
       end
     end
@@ -462,8 +457,7 @@ describe Lhm do
           :collate => collation,
         })
 
-        result = select_one('SELECT `user_name` from users')
-        result = result['user_name'] if result.respond_to?(:has_key?)
+        result = select_value('SELECT `user_name` from users')
         value(result).must_equal('a user')
       end
     end
@@ -489,8 +483,7 @@ describe Lhm do
           :collate => collation,
         })
 
-        result = select_one('SELECT `user_name` from users')
-        result = result['user_name'] if result.respond_to?(:has_key?)
+        result = select_value('SELECT `user_name` from users')
         value(result).must_equal('a user')
       end
     end
