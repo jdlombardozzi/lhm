@@ -140,7 +140,7 @@ describe Lhm::Throttler do
       end
     end
 
-    it 'should throw an error when backoff reduction factor is greater than zero' do
+    it 'should throw an error when backoff reduction factor is not greater than zero' do
       assert_raises ArgumentError do
         @mock.setup_throttler(:time_throttler, backoff_reduction_factor: 0)
       end
@@ -152,9 +152,15 @@ describe Lhm::Throttler do
       end
     end
 
-    it 'should throw an error when min_stride_size is less than 1' do
+    it 'should throw an error when min_stride_size is not an integer' do
       assert_raises ArgumentError do
         @mock.setup_throttler(:time_throttler, min_stride_size: 0.5)
+      end
+    end
+
+    it 'should throw an error when min_stride_size is not greater than 1' do
+      assert_raises ArgumentError do
+        @mock.setup_throttler(:time_throttler, min_stride_size: -12)
       end
     end
 

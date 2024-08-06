@@ -37,7 +37,6 @@ module Lhm
       )
     end
 
-
     def handle_max_binlog_exceeded_error
       @throttler.backoff_stride
     end
@@ -126,6 +125,5 @@ module Lhm
       return if @chunk_finder.table_empty?
       @chunk_finder.validate
     end
-
   end
 end

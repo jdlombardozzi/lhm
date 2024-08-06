@@ -18,18 +18,21 @@ module Lhm
         @min_stride_size = options[:min_stride_size] || MIN_STRIDE_SIZE
 
         if @backoff_reduction_factor >= 1 || @backoff_reduction_factor <= 0
-          raise ArgumentError, 'backoff_reduction_factor must be between 0 and 1'
+          raise ArgumentError, 'backoff_reduction_factor must be between greater than 0, and less than 1'
         end
 
         if @min_stride_size < 1
-          raise ArgumentError, 'min_stride_size must be greater than 0'
+          raise ArgumentError, 'min_stride_size must be and integer greater than 0'
+        end
+
+        if !@min_stride_size.is_a?(Integer)
+          raise ArgumentError, 'min_stride_size must be an integer'
         end
 
         if @min_stride_size > @stride
           raise ArgumentError, 'min_stride_size must be less than or equal to stride'
         end
       end
-
 
       def backoff_stride
         new_stride = (@stride * (1 - @backoff_reduction_factor)).to_i
