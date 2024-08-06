@@ -30,9 +30,6 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activerecord-trilogy-adapter (2.0.0)
-      activerecord (>= 7.1.0.alpha)
-      trilogy (>= 2.1.1)
     after_do (0.4.0)
     appraisal (2.5.0)
       bundler
@@ -71,10 +68,10 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  x86_64-linux
 
 DEPENDENCIES
   activerecord!
-  activerecord-trilogy-adapter
   after_do
   appraisal
   byebug
