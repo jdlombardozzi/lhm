@@ -171,7 +171,6 @@ describe Lhm::Throttler do
     end
   end
 
-
   describe '#throttler' do
 
     it 'returns the default Time based' do
