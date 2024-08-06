@@ -382,4 +382,13 @@ describe Lhm::Chunker do
       index_name
     end
   end
+
+  def set_global_variable(name, value)
+    execute("set global #{name} = #{value}")
+    connection.reconnect!
+  end
+
+  def set_max_binlog_size(value)
+    set_global_variable('max_binlog_cache_size', value)
+  end
 end
