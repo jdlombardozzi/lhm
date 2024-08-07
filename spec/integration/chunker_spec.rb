@@ -338,7 +338,6 @@ describe Lhm::Chunker do
       assert init_stride > throttler.stride
     end
 
-
     it 'should throw an error when stride cannot be reduced beyond min stride size' do
       init_stride = 100
       min_stride_size = 50
