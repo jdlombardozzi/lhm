@@ -22,7 +22,7 @@ module Lhm
         end
 
         if @min_stride_size < 1
-          raise ArgumentError, 'min_stride_size must be and integer greater than 0'
+          raise ArgumentError, 'min_stride_size must be an integer greater than 0'
         end
 
         if !@min_stride_size.is_a?(Integer)

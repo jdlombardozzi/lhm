@@ -18,7 +18,7 @@ describe Lhm::Chunker do
       @migration = Lhm::Migration.new(@origin, @destination)
       @logs = StringIO.new
       Lhm.logger = Logger.new(@logs)
-      set_max_binlog_size(1024 * 1024 * 1024) # necessary since some tests recude binlog size (1gb default)
+      set_max_binlog_size(1024 * 1024 * 1024) # necessary since some tests reduce binlog size (1gb default)
     end
 
     def log_messages
