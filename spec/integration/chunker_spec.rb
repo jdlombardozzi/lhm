@@ -5,6 +5,7 @@ require File.expand_path(File.dirname(__FILE__)) + '/integration_helper'
 require 'lhm/table'
 require 'lhm/migration'
 
+
 describe Lhm::Chunker do
   include IntegrationHelper
 
@@ -17,6 +18,7 @@ describe Lhm::Chunker do
       @migration = Lhm::Migration.new(@origin, @destination)
       @logs = StringIO.new
       Lhm.logger = Logger.new(@logs)
+      set_max_binlog_size(1024 * 1024 * 1024) # necessary since some tests reduce binlog size (1gb default)
     end
 
     def log_messages
@@ -306,6 +308,70 @@ describe Lhm::Chunker do
         value(count_all(@destination.name)).must_equal(0)
       end
     end
+
+    it 'should reduce stride size if chunker runs into max_binlog_cache_size error' do
+      init_stride = 1000
+
+      # Create a bunch of users
+      n = 0
+      25.times do |i|
+        execute "BEGIN"
+        init_stride.times do # each batch is 10 * 1000 * i bytes, so each batch of 1000 will range from 10kb - 250kb
+          n += 1
+          id = n
+          username_data = "a" * 10 * i
+          execute "insert into origin (id, common) values (#{id}, '#{username_data}')"
+        end
+        execute "COMMIT"
+      end
+
+      # reduce binlog size to 8kb
+      set_max_binlog_size(1024 * 8)
+
+      throttler = Lhm::Throttler::Time.new(stride: init_stride )
+      chunker = Lhm::Chunker.new(
+        @migration, connection, { throttler: throttler  }
+      )
+
+      # start chunking
+      chunker.run
+      assert init_stride > throttler.stride
+    end
+
+    it 'should throw an error when stride cannot be reduced beyond min stride size' do
+      init_stride = 100
+      min_stride_size = 50
+
+      # Create a bunch of users
+      n = 0
+      25.times do |i|
+        execute "BEGIN"
+        init_stride.times do # each batch is init_stride * 250 bytes, so even at min_stride of 20,
+                             # batch_size will be greater than 4kb (50 * 250kb = 12.5kb)
+          n += 1
+          id = n
+          username_data = "a" * 250
+          execute "insert into origin (id, common) values (#{id}, '#{username_data}')"
+        end
+        execute "COMMIT"
+      end
+
+      # reduce binlog size to 4kb
+      set_max_binlog_size(1024 * 4)
+      throttler = Lhm::Throttler::Time.new(stride: init_stride, min_stride_size: min_stride_size, backoff_reduction_factor: 0.9)
+
+      chunker = Lhm::Chunker.new(
+        @migration, connection, { throttler: throttler  }
+      )
+
+      # start chunking
+      exception = assert_raises do
+        chunker.run
+      end
+
+      assert RuntimeError = exception.class
+      assert "Cannot reduce stride below #{min_stride_size}" == exception.message
+    end
   end
 
   def index_key(table_name, index_name)
@@ -314,5 +380,14 @@ describe Lhm::Chunker do
     else
       index_name
     end
+  end
+
+  def set_global_variable(name, value)
+    execute("set global #{name} = #{value}")
+    connection.reconnect!
+  end
+
+  def set_max_binlog_size(value)
+    set_global_variable('max_binlog_cache_size', value)
   end
 end
