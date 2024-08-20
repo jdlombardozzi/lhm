@@ -209,7 +209,7 @@ Lhm.setup_throttler(:threads_running_throttler)
 
 ### Retrying chunks using Time throttler 
 
-When chunks fail due to MySQL `max_binlog_cache_size` being exceeded, the `chunker` class will automatically call the `backoff_stride` method when using the Time throttler to reduce stride size and retry the chunk. The backoff factor, and minimum stride size can be configured, but default to 0.2 (20% batch reduction), and 1 (minimum stride). Configuration options should be passed into the time throttler constructor, or in the `throttler_options` of `change_table` when using a time throttler.
+If chunks fail due to the MySQL max_binlog_cache_size being exceeded, the Chunker class will call the backoff_stride method on the throttler (if it is of type Throttler::Time) to reduce the stride size and retry the chunk. The default backoff factor is 0.2 (reducing the chunk size by 20% with each failure), and the minimum stride size is 1 (the stride can be reduced until each chunk is 1 row). Default values can be overridden (see below). To disable backoff, set min_stride_size equal to stride_size; this will throw an exception when max_binlog_cache_size is exceeded. Configuration options should be passed into the time throttler constructor or in the throttler_options of change_table when using a time throttler.
 
 ```ruby
 ## Configure on throttler instance 
