@@ -207,6 +207,32 @@ Or to set that as default throttler, use the following (for instance in a Rails 
 Lhm.setup_throttler(:threads_running_throttler)
 ```
 
+### Retrying chunks using Time throttler 
+
+When chunks fail due to MySQL `max_binlog_cache_size` being exceeded, the `chunker` class will automatically call the `backoff_stride` method when using the Time throttler to reduce stride size and retry the chunk. The backoff factor, and minimum stride size can be configured, but default to 0.2 (20% batch reduction), and 1 (minimum stride). Configuration options should be passed into the time throttler constructor, or in the `throttler_options` of `change_table` when using a time throttler.
+
+```ruby
+## Configure on throttler instance 
+my_throttler = Lhm::Throttler::ThreadsRunning.new(stride: 2000, delay: 1, backoff_reduction_factor: 0.1, min_stride_size: 10)
+
+Lhm.change_table :users, throttler: my_throttler  do |m|
+  ...
+end
+
+## Or pass as throttler options 
+Lhm.change_table :users, {
+  throttler: :time_throttler,
+  throttler_options: {
+    stride: 2000,
+    delay: 1,
+    backoff_reduction_factor: 0.1,
+    min_stride_size: 10
+  }
+} do |t|
+  ...
+end
+```
+
 ## Table rename strategies
 
 There are two different table rename strategies available: `LockedSwitcher` and
