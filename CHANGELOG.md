@@ -1,5 +1,8 @@
 # Unreleased
 
+# 4.4.0 (Aug, 2024)
+* Add support for retrying chunks when running into max_binlog_cache_size exceeded error
+
 # 4.3.0 (Aug, 2024)
 * Drop support for Ruby 3.0, as it reached its EOL
 * Add support for next Rails version
