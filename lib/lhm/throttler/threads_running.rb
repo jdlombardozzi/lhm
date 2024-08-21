@@ -2,6 +2,7 @@ module Lhm
   module Throttler
     class ThreadsRunning
       include Command
+      include BackoffReduction
 
       DEFAULT_STRIDE = 2_000
       DEFAULT_INITIAL_TIMEOUT = 0.1
@@ -17,6 +18,8 @@ module Lhm
         @timeout_seconds = @initial_timeout_seconds
         @healthy_range = options[:healthy_range] || DEFAULT_HEALTHY_RANGE
         @connection = options[:connection]
+
+        super
       end
 
       def threads_running

@@ -1,3 +1,4 @@
+require 'lhm/throttler/backoff_reduction'
 require 'lhm/throttler/time'
 require 'lhm/throttler/replica_lag'
 require 'lhm/throttler/slave_lag'
