@@ -13,6 +13,7 @@ module Lhm
 
     class ReplicaLag
       include Command
+      include BackoffReduction
 
       INITIAL_TIMEOUT = 0.1
       DEFAULT_STRIDE = 2_000
@@ -29,6 +30,8 @@ module Lhm
         @replicas = {}
         @get_config = options[:current_config]
         @check_only = options[:check_only]
+
+        super
       end
 
       def execute
