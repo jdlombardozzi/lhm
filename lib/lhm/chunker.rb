@@ -37,10 +37,6 @@ module Lhm
       )
     end
 
-    def handle_max_binlog_exceeded_error
-      @throttler.backoff_stride
-    end
-
     def execute
       @start_time = Time.now
 
@@ -54,9 +50,9 @@ module Lhm
         begin
           affected_rows = ChunkInsert.new(@migration, @connection, bottom, top, @retry_options).insert_and_return_count_of_rows_created
         rescue ActiveRecord::StatementInvalid => e
-          if e.message.downcase.include?("transaction required more than 'max_binlog_cache_size' bytes of storage")
+          if e.message.downcase.include?("transaction required more than 'max_binlog_cache_size' bytes of storage") && @throttler.respond_to?(:backoff_stride)
             Lhm.logger.info("Encountered max_binlog_cache_size error, attempting to reduce stride size")
-            handle_max_binlog_exceeded_error
+            @throttler.backoff_stride
             next
           else
             raise e
