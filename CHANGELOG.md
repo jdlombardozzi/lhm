@@ -1,5 +1,8 @@
 # Unreleased
 
+# 4.4.1 (Aug, 2024)
+* Extend max_binlog_cache_size exceeded error handling to all throttlers
+
 # 4.4.0 (Aug, 2024)
 * Add support for retrying chunks when running into max_binlog_cache_size exceeded error
 
