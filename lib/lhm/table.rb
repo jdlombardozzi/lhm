@@ -16,8 +16,9 @@ module Lhm
       @ddl = ddl
     end
 
-    def satisfies_id_column_requirement?
-      !!((id = columns['id']) &&
+    #  @param [String] column Name of the column to check, defaults to 'id'
+    def satisfies_id_column_requirement?(column = 'id')
+      !!((id = columns[column]) &&
         id[:type] =~ /(bigint|int)(\(\d+\))?/)
     end
 

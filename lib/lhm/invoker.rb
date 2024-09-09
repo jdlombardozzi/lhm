@@ -21,9 +21,10 @@ module Lhm
 
     attr_reader :migrator, :connection
 
-    def initialize(origin, connection)
+    def initialize(origin, connection, options = {})
       @connection = connection
-      @migrator = Migrator.new(origin, connection)
+      @migrator = Migrator.new(origin, connection, options)
+      @options = options
     end
 
     def set_session_lock_wait_timeouts
@@ -48,12 +49,19 @@ module Lhm
     def run(options = {})
       normalize_options(options)
       set_session_lock_wait_timeouts
+
       migration = @migrator.run
-      entangler = Entangler.new(migration, @connection)
+      entangler = Entangler.new(migration, @connection, origin_key_columns)
 
       entangler.run do
         options[:verifier] ||= Proc.new { |conn| triggers_still_exist?(conn, entangler) }
-        Chunker.new(migration, @connection, options).run
+
+        if options[:chunker]
+          Chunker::Factory.create_chunker(options[:chunker], migration, @connection, origin_key_columns, options).run
+        else
+          Chunker::Factory.create_chunker(:range, migration, @connection, origin_key_columns, options).run
+        end
+
         raise "Required triggers do not exist" unless triggers_still_exist?(@connection, entangler)
         if options[:atomic_switch]
           AtomicSwitcher.new(migration, @connection).run
@@ -83,6 +91,10 @@ module Lhm
         end
       end
 
+      unless options[:throttler_options]
+        options[:throttler_options] = {}
+      end
+
       if options[:throttler]
         throttler_options = options[:throttler_options] || {}
         options[:throttler] = Throttler::Factory.create_throttler(options[:throttler], throttler_options)
@@ -95,6 +107,12 @@ module Lhm
     rescue => e
       Lhm.logger.error "LHM run failed with exception=#{e.class} message=#{e.message}"
       raise
+    end
+
+    def origin_key_columns
+      @origin_key_columns ||= @connection.select_all("SHOW INDEX FROM `#{migrator.origin.name}` WHERE Key_name = 'PRIMARY'").map do |row|
+        row['Column_name']
+      end
     end
   end
 end

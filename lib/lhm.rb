@@ -48,13 +48,14 @@ module Lhm
   #   to set this option (see SqlHelper#supports_atomic_switch?)
   # @option options [Boolean] :reconnect_with_consistent_host
   #   Active / Deactivate ProxySQL-aware reconnection procedure (default to: false)
+  # @option options [String] :id_column Name of the primary key column (defaults to: 'id')
   # @yield [Migrator] Yielded Migrator object records the changes
   # @return [Boolean] Returns true if the migration finishes
   # @raise [Error] Raises Lhm::Error in case of a error and aborts the migration
   def change_table(table_name, options = {}, &block)
     with_flags(options) do
       origin = Table.parse(table_name, connection)
-      invoker = Invoker.new(origin, connection)
+      invoker = Invoker.new(origin, connection, options)
       block.call(invoker.migrator)
       invoker.run(options)
       true
